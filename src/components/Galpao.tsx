@@ -1,0 +1,173 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { User as FirebaseUser } from 'firebase/auth';
+import { studyService } from '../services/studyService';
+import { geminiService } from '../services/geminiService';
+import { 
+  Warehouse, 
+  Upload, 
+  FileText, 
+  ChevronRight,
+  Loader2,
+  CheckCircle2,
+  Archive
+} from 'lucide-react';
+import { motion } from 'motion/react';
+import * as pdfjsLib from 'pdfjs-dist';
+
+// Carga do worker via CDN (mesmo do PDFUpload)
+pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+
+export default function Galpao({ user, onStudyChunk }: { user: FirebaseUser, onStudyChunk: (chunk: any) => void }) {
+  const [materials, setMaterials] = useState<any[]>([]);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [loadingMsg, setLoadingMsg] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const unsubscribe = studyService.subscribeToGalpao(user.uid, (data) => {
+      setMaterials(data);
+    });
+    return () => unsubscribe();
+  }, [user.uid]);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    setIsProcessing(true);
+    setLoadingMsg('Lendo PDF localmente...');
+
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      
+      let fullText = '';
+      const maxPages = Math.min(pdf.numPages, 10); // Limite por enquanto
+      for (let i = 1; i <= maxPages; i++) {
+        const page = await pdf.getPage(i);
+        const textContent = await page.getTextContent();
+        const pageText = textContent.items.map((item: any) => item.str).join(' ');
+        fullText += pageText + '\n';
+      }
+      
+      setLoadingMsg('IA separando o conteúdo por temas (Galpão em ação)...');
+      
+      const chunks = await geminiService.splitMaterialIntoChunks(fullText);
+      
+      if (!chunks || !Array.isArray(chunks) || chunks.length === 0) {
+         // Se a IA nao dividiu bem, cria 1 unico chunk
+         const fallbackChunks = [{ title: 'Material Completo', content: fullText }];
+         await studyService.saveGalpaoChunks(user.uid, file.name, fallbackChunks);
+      } else {
+         // Sanitiza chunks para evitar `undefined` quebrando o Firebase
+         const safeChunks = chunks.map(c => ({
+           title: c.title || 'Capítulo da Apostila',
+           content: c.content || 'Sem texto legível',
+         }));
+         await studyService.saveGalpaoChunks(user.uid, file.name, safeChunks);
+      }
+
+    } catch (err: any) {
+      console.error("ERRO NO GALPAO:", err);
+      // Se for uma string parseada ou objeto Error, mostra os detalhes pra investigar
+      alert(`Ocorreu um erro: ${err?.message || JSON.stringify(err)}`);
+    } finally {
+      setIsProcessing(false);
+      setLoadingMsg('');
+    }
+  };
+
+  // Agrupar materiais pelo SourceID
+  const groupedMaterials = materials.reduce((acc, curr) => {
+    if (!acc[curr.sourceId]) acc[curr.sourceId] = [];
+    acc[curr.sourceId].push(curr);
+    return acc;
+  }, {} as Record<string, any[]>);
+
+  return (
+    <div className="space-y-8 pb-10">
+      <header className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3">
+            <Warehouse className="w-8 h-8 text-indigo-600" />
+            Galpão de Arquivos
+          </h1>
+          <p className="text-gray-500">Faça o upload do seu edital/apostilas. Nós separamos os temas para você estudar.</p>
+        </div>
+        
+        <input 
+          type="file" 
+          accept=".pdf"
+          className="hidden"
+          ref={fileInputRef}
+          onChange={handleFileUpload}
+        />
+        <button 
+          onClick={() => fileInputRef.current?.click()}
+          disabled={isProcessing}
+          className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white font-bold rounded-2xl shadow-lg shadow-indigo-200 flex items-center gap-2 transition-all"
+        >
+          {isProcessing ? <Loader2 className="w-5 h-5 animate-spin" /> : <Upload className="w-5 h-5" />}
+          {isProcessing ? 'Armazenando...' : 'Adicionar Apostila (PDF)'}
+        </button>
+      </header>
+
+      {isProcessing && (
+        <div className="bg-indigo-50 border border-indigo-100 rounded-2xl p-6 flex items-center justify-center gap-4 text-indigo-700 font-bold">
+          <Loader2 className="w-6 h-6 animate-spin" />
+          {loadingMsg}
+        </div>
+      )}
+
+      {Object.keys(groupedMaterials).length === 0 && !isProcessing ? (
+        <div className="bg-white rounded-[32px] shadow-sm border border-slate-100 p-16 text-center">
+          <Archive className="w-16 h-16 text-slate-200 mx-auto mb-4" />
+          <h3 className="text-xl font-bold text-gray-400">O Galpão está vazio</h3>
+          <p className="text-gray-500 mt-2">Envie PDFs para seus funcionários começarem a separação.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {Object.entries(groupedMaterials).map(([sourceId, chunks]) => (
+            <div key={sourceId} className="bg-white rounded-3xl shadow-sm border border-slate-200 p-6">
+              <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-100">
+                <div className="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center shrink-0">
+                  <FileText className="w-5 h-5 text-indigo-600" />
+                </div>
+                <h3 className="font-bold text-gray-900 truncate" title={chunks[0].fileName}>
+                  {chunks[0].fileName}
+                </h3>
+              </div>
+              
+              <div className="space-y-3">
+                {chunks.map((chunk, idx) => (
+                  <div key={chunk.id} className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 border border-slate-100 hover:border-indigo-200 hover:bg-indigo-50/50 transition-colors group">
+                    <div className="flex items-center gap-3 overflow-hidden">
+                      {chunk.processedAt ? (
+                         <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
+                      ) : (
+                         <div className="w-5 h-5 rounded-full border-2 border-slate-300 shrink-0" />
+                      )}
+                      <div className="min-w-0">
+                        <p className="font-bold text-sm text-gray-800 truncate">{chunk.title}</p>
+                        <p className="text-xs text-gray-500">
+                          {chunk.processedAt ? 'Mapa e Módulo Prontos' : 'Aguardando processamento'}
+                        </p>
+                      </div>
+                    </div>
+                    <button 
+                      onClick={() => onStudyChunk(chunk)}
+                      className="opacity-0 group-hover:opacity-100 p-2 bg-indigo-100 text-indigo-600 rounded-xl hover:bg-indigo-600 hover:text-white transition-all shrink-0"
+                      title="Estudar"
+                    >
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}

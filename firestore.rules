@@ -1,0 +1,129 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Fields: uid, email, displayName, totalStudyHours, dailyHoursGoal, subjects, createdAt
+    //
+    // Collection: users/{userId}/sessions
+    // Fields: userId, subject, startTime, endTime, durationMinutes, blocks, performance
+    //
+    // Collection: users/{userId}/materials
+    // Fields: userId, fileName, summary, keyPoints, subject, createdAt
+    //
+    // Collection: users/{userId}/questions
+    // Fields: userId, subject, text, options, correctOption, explanation, source
+    //
+    // Collection: users/{userId}/revisions
+    // Fields: userId, subject, topic, nextRevisionDate, intervalDays, status
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+          (request.auth.token.email == "rodisleijose@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    function isValidEmail(email) {
+      return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    function isValidDateString(dateStr) {
+      return dateStr is string && dateStr.matches("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.*Z?$");
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'email']) &&
+             data.uid == request.auth.uid &&
+             isValidEmail(data.email) &&
+             (!('totalStudyHours' in data) || data.totalStudyHours is number) &&
+             (!('dailyHoursGoal' in data) || data.dailyHoursGoal is number);
+    }
+
+    function isValidSession(data) {
+      return data.keys().hasAll(['userId', 'subject', 'startTime']) &&
+             data.userId == request.auth.uid &&
+             data.subject is string &&
+             isValidDateString(data.startTime);
+    }
+
+    function isValidMaterial(data) {
+      return data.keys().hasAll(['userId', 'fileName']) &&
+             data.userId == request.auth.uid &&
+             data.fileName is string &&
+             data.fileName.size() < 255;
+    }
+
+    function isValidQuestion(data) {
+      return data.keys().hasAll(['userId', 'subject', 'text', 'options', 'correctOption']) &&
+             data.userId == request.auth.uid &&
+             data.options is list &&
+             data.correctOption is int;
+    }
+
+    function isValidRevision(data) {
+      return data.keys().hasAll(['userId', 'subject', 'nextRevisionDate', 'intervalDays']) &&
+             data.userId == request.auth.uid &&
+             isValidDateString(data.nextRevisionDate) &&
+             data.intervalDays in [1, 7, 15];
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isOwner(userId) && isValidUser(request.resource.data);
+      allow update: if isOwner(userId) && isValidUser(request.resource.data);
+      allow delete: if isAdmin();
+
+      match /sessions/{sessionId} {
+        allow read: if isOwner(userId) || isAdmin();
+        allow create: if isOwner(userId) && isValidSession(request.resource.data);
+        allow update: if isOwner(userId) && isValidSession(request.resource.data);
+        allow delete: if isOwner(userId) || isAdmin();
+      }
+
+      match /materials/{materialId} {
+        allow read: if isOwner(userId) || isAdmin();
+        allow create: if isOwner(userId) && isValidMaterial(request.resource.data);
+        allow update: if isOwner(userId) && isValidMaterial(request.resource.data);
+        allow delete: if isOwner(userId) || isAdmin();
+      }
+
+      match /questions/{questionId} {
+        allow read: if isOwner(userId) || isAdmin();
+        allow create: if isOwner(userId) && isValidQuestion(request.resource.data);
+        allow update: if isOwner(userId) && isValidQuestion(request.resource.data);
+        allow delete: if isOwner(userId) || isAdmin();
+      }
+
+      match /revisions/{revisionId} {
+        allow read: if isOwner(userId) || isAdmin();
+        allow create: if isOwner(userId) && isValidRevision(request.resource.data);
+        allow update: if isOwner(userId) && isValidRevision(request.resource.data);
+        allow delete: if isOwner(userId) || isAdmin();
+      }
+    }
+  }
+}

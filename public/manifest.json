@@ -1,0 +1,17 @@
+{
+  "name": "Concurseiro SIPC",
+  "short_name": "Concurseiro",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#4f46e5",
+  "description": "Sistema Inteligente de Preparação para Concursos",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

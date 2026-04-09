@@ -1,0 +1,114 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile and study settings",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "totalStudyHours": { "type": "number", "description": "Target total hours (e.g., 540)" },
+        "dailyHoursGoal": { "type": "number", "description": "Daily goal (e.g., 2)" },
+        "subjects": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string" },
+              "weight": { "type": "number" }
+            }
+          }
+        },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email"]
+    },
+    "StudySession": {
+      "title": "StudySession",
+      "description": "A single study session record",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "subject": { "type": "string" },
+        "startTime": { "type": "string", "format": "date-time" },
+        "endTime": { "type": "string", "format": "date-time" },
+        "durationMinutes": { "type": "number" },
+        "blocks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "type": { "type": "string", "enum": ["Prepare", "Understand", "Learn", "Alternate", "Fix"] },
+              "duration": { "type": "number" },
+              "completed": { "type": "boolean" }
+            }
+          }
+        },
+        "performance": { "type": "number", "description": "Score or self-assessment 0-100" }
+      }
+    },
+    "Material": {
+      "title": "Material",
+      "description": "Uploaded study material",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "fileName": { "type": "string" },
+        "summary": { "type": "string" },
+        "keyPoints": { "type": "array", "items": { "type": "string" } },
+        "subject": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "Question": {
+      "title": "Question",
+      "description": "Practice question",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "subject": { "type": "string" },
+        "text": { "type": "string" },
+        "options": { "type": "array", "items": { "type": "string" } },
+        "correctOption": { "type": "number" },
+        "explanation": { "type": "string" },
+        "source": { "type": "string", "description": "PDF name or AI generated" }
+      }
+    },
+    "Revision": {
+      "title": "Revision",
+      "description": "Spaced repetition item",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "subject": { "type": "string" },
+        "topic": { "type": "string" },
+        "nextRevisionDate": { "type": "string", "format": "date-time" },
+        "intervalDays": { "type": "number", "enum": [1, 7, 15] },
+        "status": { "type": "string", "enum": ["pending", "completed"] }
+      }
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles"
+    },
+    "/users/{userId}/sessions/{sessionId}": {
+      "schema": "StudySession",
+      "description": "User study sessions"
+    },
+    "/users/{userId}/materials/{materialId}": {
+      "schema": "Material",
+      "description": "User study materials"
+    },
+    "/users/{userId}/questions/{questionId}": {
+      "schema": "Question",
+      "description": "User practice questions"
+    },
+    "/users/{userId}/revisions/{revisionId}": {
+      "schema": "Revision",
+      "description": "User spaced repetition items"
+    }
+  }
+}
