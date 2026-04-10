@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { User as FirebaseUser } from 'firebase/auth';
 import { studyService } from '../services/studyService';
 import { geminiService } from '../services/geminiService';
+import { useStudySession } from '../contexts/StudySessionContext';
 import { 
   Play, 
   Pause, 
@@ -19,83 +20,19 @@ import { useToast } from './Toast';
 
 export default function StudyCycle({ user }: { user: FirebaseUser }) {
   const { showToast } = useToast();
-  const [blocks, setBlocks] = useState([
-    { id: 1, subject: 'Seguridade Social', duration: 30 },
-    { id: 2, subject: 'Português', duration: 30 },
-    { id: 3, subject: 'Direito Administrativo', duration: 30 },
-    { id: 4, subject: 'Revisão / Questões', duration: 30 },
-  ]);
+  const { 
+    blocks, 
+    activeBlockIndex, 
+    timeLeft, 
+    isActive, 
+    completedBlocks, 
+    toggleTimer, 
+    resetSession, 
+    skipToNextBlock 
+  } = useStudySession();
 
-  const [activeBlockIndex, setActiveBlockIndex] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(30 * 60);
-  const [isActive, setIsActive] = useState(false);
   const [explanation, setExplanation] = useState('');
   const [isExplaining, setIsExplaining] = useState(false);
-  const [completedBlocks, setCompletedBlocks] = useState<number[]>([]);
-
-  useEffect(() => {
-    const loadSubjects = async () => {
-      const data = await studyService.getUser(user.uid);
-      if (data?.subjects && data.subjects.length > 0) {
-        // Sort by weight desc
-        const sorted = [...data.subjects].sort((a, b) => b.weight - a.weight);
-        setBlocks([
-          { id: 1, subject: sorted[0]?.name || 'Matéria 1', duration: 30 },
-          { id: 2, subject: sorted[1]?.name || 'Matéria 2', duration: 30 },
-          { id: 3, subject: sorted[2]?.name || 'Matéria 3', duration: 30 },
-          { id: 4, subject: 'Revisão / Questões', duration: 30 },
-        ]);
-      }
-    };
-    loadSubjects();
-  }, [user.uid]);
-
-  useEffect(() => {
-    let interval: any = null;
-    if (isActive && timeLeft > 0) {
-      interval = setInterval(() => {
-        setTimeLeft((time) => time - 1);
-      }, 1000);
-    } else if (timeLeft === 0 && isActive) {
-      handleBlockComplete();
-    }
-    return () => clearInterval(interval);
-  }, [isActive, timeLeft]);
-
-  const handleBlockComplete = () => {
-    setIsActive(false);
-    if (!completedBlocks.includes(activeBlockIndex)) {
-      setCompletedBlocks([...completedBlocks, activeBlockIndex]);
-    }
-    
-    if (activeBlockIndex < blocks.length - 1) {
-      const nextIndex = activeBlockIndex + 1;
-      setActiveBlockIndex(nextIndex);
-      setTimeLeft(blocks[nextIndex].duration * 60);
-    } else {
-      saveSession();
-    }
-  };
-
-  const saveSession = async () => {
-    await studyService.addSession(user.uid, {
-      subject: 'Ciclo Completo',
-      durationMinutes: 120,
-      performance: 85,
-      completed: true,
-      blocks: blocks.map(b => b.subject)
-    });
-    showToast('Sessão de 2h concluída e salva com sucesso!', 'success');
-    resetSession();
-  };
-
-  const resetSession = () => {
-    setActiveBlockIndex(0);
-    setTimeLeft(blocks[0].duration * 60);
-    setIsActive(false);
-    setCompletedBlocks([]);
-    setExplanation('');
-  };
 
   const handleExplain = async () => {
     setIsExplaining(true);
@@ -104,6 +41,7 @@ export default function StudyCycle({ user }: { user: FirebaseUser }) {
       setExplanation(text || '');
     } catch (e) {
       console.error(e);
+      showToast('Erro ao contactar Professor IA', 'error');
     } finally {
       setIsExplaining(false);
     }
@@ -116,6 +54,7 @@ export default function StudyCycle({ user }: { user: FirebaseUser }) {
   };
 
   const currentBlock = blocks[activeBlockIndex];
+
 
   return (
     <div className="max-w-5xl mx-auto space-y-8 pb-10">
@@ -195,7 +134,7 @@ export default function StudyCycle({ user }: { user: FirebaseUser }) {
 
           <div className="flex items-center gap-4">
             <button 
-              onClick={() => setIsActive(!isActive)}
+              onClick={() => toggleTimer()}
               className={`w-16 h-16 rounded-full flex items-center justify-center transition-all ${
                 isActive ? 'bg-amber-100 text-amber-600 hover:bg-amber-200' : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-lg shadow-indigo-200'
               }`}
@@ -210,7 +149,7 @@ export default function StudyCycle({ user }: { user: FirebaseUser }) {
               <RotateCcw className="w-6 h-6" />
             </button>
             <button 
-               onClick={handleBlockComplete}
+               onClick={skipToNextBlock}
                className="w-12 h-12 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center hover:bg-indigo-100 hover:text-indigo-600 transition-colors"
                title="Pular para próximo bloco"
             >

@@ -43,17 +43,18 @@ export const geminiService = {
   async explainTopic(topic: string, subject: string) {
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
-      contents: `Explain the topic "${topic}" in the context of "${subject}" for a public exam candidate. Use simple examples.`,
+      contents: `Explique o tópico "${topic}" no contexto da matéria "${subject}" para um candidato de concurso público no Brasil. Use exemplos práticos. RESPONDA OBRIGATORIAMENTE EM PORTUGUÊS DO BRASIL.`,
       config: {
-        systemInstruction: "You are an expert tutor for public exams. Explain concepts clearly and concisely."
+        systemInstruction: "Você é um tutor especialista em concursos públicos no Brasil. Explique os conceitos de forma muito clara e concisa em Português."
       }
     });
     return response.text;
   },
 
   async generateQuestionsFromText(text: string, subject: string) {
-    const prompt = `Based on the following text about ${subject}, generate 5 multiple-choice questions for a public exam.
-    Text: ${text}`;
+    const prompt = `Com base no texto a seguir sobre ${subject}, gere 5 questões de múltipla escolha focadas em modelo de prova de concurso (banca padrão).
+    Escreva TODAS as questões, opções e a explicação final estritamente em PORTUGUÊS DO BRASIL.
+    Texto: ${text}`;
 
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
@@ -82,8 +83,9 @@ export const geminiService = {
   async summarizeMaterial(text: string) {
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
-      contents: `Summarize the following study material and list the top 5 key points.
-      Text: ${text}`,
+      contents: `Resuma o material de estudo a seguir e extraia os 5 pontos cruciais que costumam cair em provas.
+      O resumo deve ser gerado totalmente em PORTUGUÊS DO BRASIL.
+      Texto: ${text}`,
       config: {
         responseMimeType: "application/json",
         responseSchema: {
@@ -102,9 +104,10 @@ export const geminiService = {
   async generateMindMap(text: string) {
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
-      contents: `Based on the following text, generate a mind map structure. 
-      Return an object with a 'title' string and a 'nodes' array. Each node should have a 'label' string and an optional 'children' array of sub-nodes (same structure). Keep it concise, max 3 levels deep.
-      Text: ${text}`,
+      contents: `Crie a estrutura de um mapa mental baseada no texto a seguir para facilitar os estudos. 
+      Retorne um objeto JSON com 'title' (string) e um array 'nodes'. Cada 'node' deve ter um 'label' (string) e opcionalmente um array de 'children' na mesma estrutura, até 3 níveis.
+      Todos os títulos e labels DEVEM ESTAR EM PORTUGUÊS DO BRASIL.
+      Texto: ${text}`,
       config: {
         responseMimeType: "application/json",
         responseSchema: {
@@ -152,8 +155,9 @@ export const geminiService = {
   async splitMaterialIntoChunks(text: string) {
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
-      contents: `Divide the following text into logical study chunks/chapters. Give each chunk a concise title and extract the exact text belonging to that chunk.
-      Text: ${text}`,
+      contents: `Divida o texto a seguir em capítulos/tópicos lógicos de estudo. Dê a cada pedaço um título resumido e extraia o texto exato correspondente.
+      Escreva os títulos totalmente em PORTUGUÊS DO BRASIL.
+      Texto: ${text}`,
       config: {
         responseMimeType: "application/json",
         responseSchema: {

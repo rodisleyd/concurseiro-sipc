@@ -33,6 +33,8 @@ import FocusMode from './components/FocusMode';
 import PDFUpload from './components/PDFUpload';
 import Galpao from './components/Galpao';
 import { ToastProvider } from './components/Toast';
+import { StudySessionProvider } from './contexts/StudySessionContext';
+import MiniTimer from './components/MiniTimer';
 
 export default function App() {
   const [user, setUser] = useState<FirebaseUser | null>(null);
@@ -118,6 +120,7 @@ export default function App() {
   return (
     <ErrorBoundary>
       <ToastProvider>
+        <StudySessionProvider user={user}>
         <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row">
           {/* ... existing sidebar and main code ... */}
           {/* Sidebar */}
@@ -133,7 +136,7 @@ export default function App() {
               {tabs.map((tab) => (
                 <button
                   key={tab.id}
-                  onClick={() => { setActiveTab(tab.id); if(tab.id !== 'materials') setActiveChunk(null); }}
+                  onClick={() => setActiveTab(tab.id)}
                   className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all ${
                     activeTab === tab.id 
                       ? 'bg-indigo-50 text-indigo-600 font-semibold' 
@@ -146,6 +149,7 @@ export default function App() {
               ))}
             </nav>
 
+            <MiniTimer onNavigateToCycle={() => setActiveTab('cycle')} />
             <div className="p-6 border-t border-slate-100">
               <div className="flex items-center gap-3 mb-4">
                 <img src={user.photoURL || ''} className="w-10 h-10 rounded-full border-2 border-indigo-100" alt="Avatar" referrerPolicy="no-referrer" />
@@ -178,13 +182,14 @@ export default function App() {
                 {activeTab === 'dashboard' && <Dashboard user={user} />}
                 {activeTab === 'planner' && <StudyPlanner user={user} />}
                 {activeTab === 'galpao' && <Galpao user={user} onStudyChunk={handleStudyChunk} />}
-                {activeTab === 'materials' && <PDFUpload user={user} chunk={activeChunk} />}
+                {activeTab === 'materials' && <PDFUpload user={user} chunk={activeChunk} onGoToGalpao={() => setActiveTab('galpao')} />}
                 {activeTab === 'cycle' && <StudyCycle user={user} />}
                 {activeTab === 'tutor' && <AITutor user={user} />}
               </motion.div>
             </AnimatePresence>
           </main>
         </div>
+        </StudySessionProvider>
       </ToastProvider>
     </ErrorBoundary>
   );

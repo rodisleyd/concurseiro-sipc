@@ -18,7 +18,7 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 import { useToast } from './Toast';
 
-export default function PDFUpload({ user, chunk }: { user: FirebaseUser, chunk?: any }) {
+export default function PDFUpload({ user, chunk, onGoToGalpao }: { user: FirebaseUser, chunk?: any, onGoToGalpao?: () => void }) {
   const { showToast } = useToast();
   const [isProcessing, setIsProcessing] = useState(false);
   const [result, setResult] = useState<any>(null);
@@ -152,19 +152,20 @@ export default function PDFUpload({ user, chunk }: { user: FirebaseUser, chunk?:
         <p className="text-gray-500 max-w-sm mb-8">
           Vá para o Galpão, escolha um tema da sua apostila e clique em "Gerar Aula" para começar sua sessão de elite.
         </p>
-        <button 
-          onClick={() => {
-            // This is a bit tricky as navigation is handled in App.tsx
-            // But I can dispatch a custom event or let the user know they need to click the sidebar
-            // Since I can't easily trigger the state in App.tsx from here without a prop, 
-            // I'll just improve the text for now or add a helpful tip.
-          }}
-          className="hidden" // Keeping it hidden until I have a better way to navigate, but improving the text below
-        />
-        <div className="flex items-center gap-2 text-indigo-600 font-bold bg-indigo-50 px-6 py-3 rounded-2xl">
-          <BookOpen className="w-5 h-5" />
-          Dica: Clique em "Galpão de Arquivos" no menu ao lado.
-        </div>
+        {onGoToGalpao ? (
+          <button 
+            onClick={onGoToGalpao}
+            className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-2xl transition-all shadow-md mt-4 flex items-center gap-2"
+          >
+            <Archive className="w-5 h-5" />
+            Ir para o Galpão
+          </button>
+        ) : (
+          <div className="flex items-center gap-2 text-indigo-600 font-bold bg-indigo-50 px-6 py-3 rounded-2xl mt-4">
+            <BookOpen className="w-5 h-5" />
+            Dica: Clique em "Galpão de Arquivos" no menu ao lado.
+          </div>
+        )}
       </div>
     );
   }
