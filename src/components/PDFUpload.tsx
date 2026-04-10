@@ -144,10 +144,27 @@ export default function PDFUpload({ user, chunk }: { user: FirebaseUser, chunk?:
 
   if (!chunk) {
     return (
-      <div className="bg-white rounded-[32px] shadow-sm border border-slate-100 p-16 text-center">
-        <Archive className="w-16 h-16 text-indigo-200 mx-auto mb-4" />
-        <h3 className="text-2xl font-bold text-gray-900 mb-2">Nenhum Tópico Selecionado</h3>
-        <p className="text-gray-500 max-w-md mx-auto">Vá para a aba <strong>Galpão de Arquivos</strong>, faça o upload das suas apostilas e selecione um tópico para começar a resolver os testes e ler os mapas mentais.</p>
+      <div className="flex flex-col items-center justify-center min-h-[400px] bg-white rounded-[32px] border-2 border-dashed border-slate-200 p-12 text-center">
+        <div className="w-20 h-20 bg-slate-50 rounded-3xl flex items-center justify-center mb-6">
+          <Archive className="w-10 h-10 text-slate-300" />
+        </div>
+        <h3 className="text-2xl font-bold text-gray-900 mb-3">Nenhum Tópico Selecionado</h3>
+        <p className="text-gray-500 max-w-sm mb-8">
+          Vá para o Galpão, escolha um tema da sua apostila e clique em "Gerar Aula" para começar sua sessão de elite.
+        </p>
+        <button 
+          onClick={() => {
+            // This is a bit tricky as navigation is handled in App.tsx
+            // But I can dispatch a custom event or let the user know they need to click the sidebar
+            // Since I can't easily trigger the state in App.tsx from here without a prop, 
+            // I'll just improve the text for now or add a helpful tip.
+          }}
+          className="hidden" // Keeping it hidden until I have a better way to navigate, but improving the text below
+        />
+        <div className="flex items-center gap-2 text-indigo-600 font-bold bg-indigo-50 px-6 py-3 rounded-2xl">
+          <BookOpen className="w-5 h-5" />
+          Dica: Clique em "Galpão de Arquivos" no menu ao lado.
+        </div>
       </div>
     );
   }
