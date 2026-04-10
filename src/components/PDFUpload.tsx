@@ -157,8 +157,8 @@ export default function PDFUpload({ user, chunk }: { user: FirebaseUser, chunk?:
           transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
           className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full mb-6"
         />
-        <h3 className="text-xl font-bold text-gray-900 mb-2">Construindo Aula...</h3>
-        <p className="text-gray-500">A IA está lendo "{chunk.title}". Gerando os mapas e perguntas inéditas.</p>
+        <h3 className="text-2xl font-black text-gray-900 mb-2">Construindo sua Aula...</h3>
+        <p className="text-gray-500 max-w-sm">Nossa IA está lendo <strong>"{chunk.title}"</strong> para criar seus mapas e perguntas inéditas. Um momento!</p>
       </div>
     );
   }
@@ -173,18 +173,21 @@ export default function PDFUpload({ user, chunk }: { user: FirebaseUser, chunk?:
           </p>
         </div>
         {!savedSuccess ? (
-          <button 
+          <motion.button 
+            initial={{ scale: 1 }}
+            animate={result ? { scale: [1, 1.05, 1] } : {}}
+            transition={{ duration: 2, repeat: Infinity }}
             onClick={handleSaveToGalpao}
             disabled={isSaving || !result}
-            className="px-6 py-2 bg-slate-900 hover:bg-black text-white font-bold rounded-xl shadow-lg flex items-center gap-2 transition-all disabled:opacity-50 text-sm"
+            className="px-8 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-2xl shadow-xl shadow-indigo-200 flex items-center gap-2 transition-all disabled:opacity-50 text-sm"
           >
-            {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-            Guardar na Memória
-          </button>
+            {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+            Finalizar e Salvar Aula
+          </motion.button>
         ) : (
-          <div className="px-6 py-2 bg-emerald-50 text-emerald-600 border border-emerald-200 font-bold rounded-xl flex items-center gap-2 text-sm">
-            <CheckCircle2 className="w-4 h-4" />
-            Salvo no Galpão
+          <div className="px-6 py-3 bg-emerald-50 text-emerald-600 border border-emerald-200 font-bold rounded-2xl flex items-center gap-2 text-sm">
+            <CheckCircle2 className="w-5 h-5" />
+            Aula Pronta no Galpão
           </div>
         )}
       </header>
