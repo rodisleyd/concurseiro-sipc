@@ -4,9 +4,18 @@ const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
 
 export const geminiService = {
   async generateStudyPlan(subjects: { name: string; weight: number }[], totalHours: number) {
-    const prompt = `Generate a study plan for a total of ${totalHours} hours.
-    Subjects and weights: ${JSON.stringify(subjects)}.
-    Return a JSON array of study blocks, each with subject, duration (minutes), and recommended focus area.`;
+    const prompt = `Você é um mentor especialista em concursos.
+    Gere uma trilha de estudos realista baseada em um ciclo de estudos.
+    Total do projeto: ${totalHours} horas.
+    Matérias e Pesos: ${JSON.stringify(subjects)}.
+    
+    REGRAS CRÍTICAS:
+    1. Divida o tempo proporcionalmente aos pesos, mas cada bloco de estudo deve ter entre 45 e 120 minutos. NUNCA gere blocos de milhares de minutos.
+    2. Intercale as matérias (não coloque a mesma matéria em 3 blocos seguidos).
+    3. Gere os primeiros 15 a 20 blocos dessa jornada para começar.
+    4. O campo durationMinutes deve ser um número realista para uma única sessão de estudo.
+    
+    Retorne um array JSON de objetos com: subject, durationMinutes e focusArea (um tópico específico para estudar nesse bloco).`;
 
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
