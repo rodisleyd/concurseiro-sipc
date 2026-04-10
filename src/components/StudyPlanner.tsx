@@ -14,6 +14,8 @@ import {
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useToast } from './Toast';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 export default function StudyPlanner({ user }: { user: FirebaseUser }) {
   const { showToast } = useToast();
@@ -75,6 +77,59 @@ export default function StudyPlanner({ user }: { user: FirebaseUser }) {
     } finally {
       setIsGenerating(false);
     }
+  };
+
+  const downloadPDF = () => {
+    const doc = new jsPDF();
+    
+    // Header
+    doc.setFontSize(18);
+    doc.setTextColor(31, 41, 55); // gray-800
+    doc.text('Cronograma de Estudos - Concurseiro SIPC', 14, 22);
+    
+    doc.setFontSize(11);
+    doc.setTextColor(107, 114, 128); // gray-500
+    doc.text('Plano automatizado gerado por Inteligência Artificial', 14, 30);
+
+    const tableColumn = ["Bloco", "Matéria", "Foco de Estudo", "Duração Máxima"];
+    const tableRows: any[] = [];
+
+    plan.forEach((item, index) => {
+      tableRows.push([
+        `${index + 1}º Bloco`,
+        item.subject,
+        item.focusArea,
+        `${item.durationMinutes} min`
+      ]);
+    });
+
+    autoTable(doc, {
+      startY: 40,
+      head: [tableColumn],
+      body: tableRows,
+      theme: 'grid',
+      headStyles: { 
+        fillColor: [79, 70, 229], // indigo-600
+        textColor: 255,
+        fontStyle: 'bold'
+      },
+      alternateRowStyles: {
+        fillColor: [248, 250, 252] // slate-50
+      },
+      styles: {
+        fontSize: 10,
+        cellPadding: 4,
+        lineColor: [226, 232, 240], // slate-200
+        lineWidth: 0.1,
+      },
+      columnStyles: {
+        0: { cellWidth: 25, fontStyle: 'bold' },
+        1: { cellWidth: 45, fontStyle: 'bold' },
+        3: { cellWidth: 25, halign: 'center' }
+      }
+    });
+
+    doc.save('cronograma_concurseiro.pdf');
   };
 
   const totalWeight = subjects.reduce((acc, s) => acc + Number(s.weight), 0);
@@ -196,9 +251,9 @@ export default function StudyPlanner({ user }: { user: FirebaseUser }) {
             <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
               <div className="p-6 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
                 <h3 className="font-bold text-gray-900">Cronograma Sugerido</h3>
-                <button onClick={() => window.print()} className="print:hidden p-2 text-indigo-600 hover:bg-indigo-100 rounded-lg transition-colors flex items-center gap-2 text-sm font-semibold" title="Imprimir Cronograma">
+                <button onClick={downloadPDF} className="p-2 text-indigo-600 hover:bg-indigo-100 rounded-lg transition-colors flex items-center gap-2 text-sm font-semibold" title="Baixar Cronograma em PDF">
                   <Printer className="w-4 h-4" />
-                  Imprimir PDF
+                  Gerar PDF
                 </button>
               </div>
               <div className="divide-y divide-slate-100">
