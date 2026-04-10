@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { User as FirebaseUser } from 'firebase/auth';
 import { geminiService } from '../services/geminiService';
 import { studyService } from '../services/studyService';
@@ -32,6 +32,8 @@ export default function StudyPlanner({ user }: { user: FirebaseUser }) {
   const [dailyGoal, setDailyGoal] = useState(2);
   const [isGenerating, setIsGenerating] = useState(false);
   const [plan, setPlan] = useState<any[]>([]);
+  const [isSaving, setIsSaving] = useState(false);
+  const isDataLoaded = useRef(false);
 
   useEffect(() => {
     const loadData = async () => {
@@ -39,9 +41,34 @@ export default function StudyPlanner({ user }: { user: FirebaseUser }) {
       if (data?.subjects) setSubjects(data.subjects);
       if (data?.totalStudyHours) setTotalHours(data.totalStudyHours);
       if (data?.dailyHoursGoal) setDailyGoal(data.dailyHoursGoal);
+      if (data?.plan) setPlan(data.plan);
+      
+      // Dá tempo de todos os hooks de estado se estabilizarem antes de ativar o monitoramento
+      setTimeout(() => {
+        isDataLoaded.current = true;
+      }, 500);
     };
     loadData();
   }, [user.uid]);
+
+  useEffect(() => {
+    if (!isDataLoaded.current) return;
+    
+    // Auto-save settings when changes are made, with 1.5s debounce
+    const timeoutId = setTimeout(async () => {
+      setIsSaving(true);
+      await studyService.saveUser({
+        uid: user.uid,
+        subjects: subjects.map(s => ({ ...s, weight: Number(s.weight) || 0 })),
+        totalStudyHours: Number(totalHours) || 0,
+        dailyHoursGoal: Number(dailyGoal) || 0,
+        plan
+      });
+      setIsSaving(false);
+    }, 1500);
+
+    return () => clearTimeout(timeoutId);
+  }, [subjects, totalHours, dailyGoal, plan, user.uid]);
 
   const handleAddSubject = () => {
     setSubjects([...subjects, { name: '', weight: 0 }]);
@@ -58,12 +85,15 @@ export default function StudyPlanner({ user }: { user: FirebaseUser }) {
   };
 
   const handleSaveSettings = async () => {
+    setIsSaving(true);
     await studyService.saveUser({
       uid: user.uid,
-      subjects,
-      totalStudyHours: totalHours,
-      dailyHoursGoal: dailyGoal
+      subjects: subjects.map(s => ({ ...s, weight: Number(s.weight) || 0 })),
+      totalStudyHours: Number(totalHours) || 0,
+      dailyHoursGoal: Number(dailyGoal) || 0,
+      plan
     });
+    setIsSaving(false);
     showToast('Configurações salvas com sucesso!', 'success');
   };
 
@@ -143,10 +173,19 @@ export default function StudyPlanner({ user }: { user: FirebaseUser }) {
         </div>
         <button 
           onClick={handleSaveSettings}
-          className="flex items-center gap-2 px-6 py-3 bg-white border border-slate-200 text-gray-700 font-semibold rounded-xl hover:bg-slate-50 transition-colors shadow-sm"
+          disabled={isSaving}
+          className="flex items-center gap-2 px-6 py-3 bg-white border border-slate-200 text-gray-700 font-semibold rounded-xl hover:bg-slate-50 transition-colors shadow-sm disabled:opacity-75 disabled:cursor-wait"
         >
-          <Save className="w-5 h-5" />
-          Salvar Configurações
+          {isSaving ? (
+             <motion.div 
+              animate={{ rotate: 360 }}
+              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+              className="w-5 h-5 border-2 border-indigo-600 border-t-transparent rounded-full"
+            />
+          ) : (
+            <Save className="w-5 h-5" />
+          )}
+          {isSaving ? 'Salvando...' : 'Salvar Configurações'}
         </button>
       </header>
 
@@ -163,8 +202,8 @@ export default function StudyPlanner({ user }: { user: FirebaseUser }) {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Horas Totais de Estudo</label>
                 <input 
                   type="number" 
-                  value={totalHours} 
-                  onChange={(e) => setTotalHours(Number(e.target.value))}
+                  value={totalHours === 0 ? '' : totalHours} 
+                  onChange={(e) => setTotalHours(e.target.value === '' ? 0 : Number(e.target.value))}
                   className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"
                 />
               </div>
@@ -172,8 +211,8 @@ export default function StudyPlanner({ user }: { user: FirebaseUser }) {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Horas por Dia</label>
                 <input 
                   type="number" 
-                  value={dailyGoal} 
-                  onChange={(e) => setDailyGoal(Number(e.target.value))}
+                  value={dailyGoal === 0 ? '' : dailyGoal} 
+                  onChange={(e) => setDailyGoal(e.target.value === '' ? 0 : Number(e.target.value))}
                   className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"
                 />
               </div>
@@ -207,8 +246,8 @@ export default function StudyPlanner({ user }: { user: FirebaseUser }) {
                   <input 
                     type="number" 
                     placeholder="%"
-                    value={subject.weight}
-                    onChange={(e) => handleSubjectChange(index, 'weight', Number(e.target.value))}
+                    value={subject.weight === 0 ? '' : subject.weight}
+                    onChange={(e) => handleSubjectChange(index, 'weight', e.target.value === '' ? 0 : Number(e.target.value))}
                     className="w-16 px-2 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-center outline-none focus:ring-1 focus:ring-indigo-500"
                   />
                   <button 

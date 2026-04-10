@@ -79,7 +79,7 @@ export const studyService = {
       await setDoc(doc(db, 'users', userData.uid), {
         ...userData,
         createdAt: new Date().toISOString()
-      });
+      }, { merge: true });
     } catch (error) {
       handleFirestoreError(error, OperationType.WRITE, path);
     }
