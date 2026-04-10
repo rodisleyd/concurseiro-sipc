@@ -32,6 +32,7 @@ import AITutor from './components/AITutor';
 import FocusMode from './components/FocusMode';
 import PDFUpload from './components/PDFUpload';
 import Galpao from './components/Galpao';
+import { ToastProvider } from './components/Toast';
 
 export default function App() {
   const [user, setUser] = useState<FirebaseUser | null>(null);
@@ -116,72 +117,75 @@ export default function App() {
 
   return (
     <ErrorBoundary>
-      <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row">
-        {/* Sidebar */}
-        <aside className="w-full md:w-72 bg-white border-r border-slate-200 flex flex-col">
-          <div className="p-8 flex items-center gap-3">
-            <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center">
-              <GraduationCap className="w-6 h-6 text-white" />
-            </div>
-            <span className="text-2xl font-bold text-gray-900 tracking-tight">Concurseiro</span>
-          </div>
-
-          <nav className="flex-1 px-4 space-y-2">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => { setActiveTab(tab.id); if(tab.id !== 'materials') setActiveChunk(null); }}
-                className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all ${
-                  activeTab === tab.id 
-                    ? 'bg-indigo-50 text-indigo-600 font-semibold' 
-                    : 'text-gray-500 hover:bg-slate-50 hover:text-gray-900'
-                }`}
-              >
-                <tab.icon className={`w-5 h-5 ${activeTab === tab.id ? 'text-indigo-600' : 'text-gray-400'}`} />
-                {tab.label}
-              </button>
-            ))}
-          </nav>
-
-          <div className="p-6 border-t border-slate-100">
-            <div className="flex items-center gap-3 mb-4">
-              <img src={user.photoURL || ''} className="w-10 h-10 rounded-full border-2 border-indigo-100" alt="Avatar" referrerPolicy="no-referrer" />
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-gray-900 truncate">{user.displayName}</p>
-                <p className="text-xs text-gray-500 truncate">{user.email}</p>
+      <ToastProvider>
+        <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row">
+          {/* ... existing sidebar and main code ... */}
+          {/* Sidebar */}
+          <aside className="w-full md:w-72 bg-white border-r border-slate-200 flex flex-col">
+            <div className="p-8 flex items-center gap-3">
+              <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center">
+                <GraduationCap className="w-6 h-6 text-white" />
               </div>
+              <span className="text-2xl font-bold text-gray-900 tracking-tight">Concurseiro</span>
             </div>
-            <button 
-              onClick={() => signOut(auth)}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 rounded-xl transition-colors"
-            >
-              <LogOut className="w-4 h-4" />
-              Sair
-            </button>
-          </div>
-        </aside>
 
-        {/* Main Content */}
-        <main className="flex-1 h-screen overflow-y-auto p-4 md:p-10">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={activeTab}
-              initial={{ opacity: 0, x: 10 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -10 }}
-              transition={{ duration: 0.2 }}
-              className="max-w-6xl mx-auto"
-            >
-              {activeTab === 'dashboard' && <Dashboard user={user} />}
-              {activeTab === 'planner' && <StudyPlanner user={user} />}
-              {activeTab === 'galpao' && <Galpao user={user} onStudyChunk={handleStudyChunk} />}
-              {activeTab === 'materials' && <PDFUpload user={user} chunk={activeChunk} />}
-              {activeTab === 'cycle' && <StudyCycle user={user} />}
-              {activeTab === 'tutor' && <AITutor user={user} />}
-            </motion.div>
-          </AnimatePresence>
-        </main>
-      </div>
+            <nav className="flex-1 px-4 space-y-2">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => { setActiveTab(tab.id); if(tab.id !== 'materials') setActiveChunk(null); }}
+                  className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all ${
+                    activeTab === tab.id 
+                      ? 'bg-indigo-50 text-indigo-600 font-semibold' 
+                      : 'text-gray-500 hover:bg-slate-50 hover:text-gray-900'
+                  }`}
+                >
+                  <tab.icon className={`w-5 h-5 ${activeTab === tab.id ? 'text-indigo-600' : 'text-gray-400'}`} />
+                  {tab.label}
+                </button>
+              ))}
+            </nav>
+
+            <div className="p-6 border-t border-slate-100">
+              <div className="flex items-center gap-3 mb-4">
+                <img src={user.photoURL || ''} className="w-10 h-10 rounded-full border-2 border-indigo-100" alt="Avatar" referrerPolicy="no-referrer" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-gray-900 truncate">{user.displayName}</p>
+                  <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => signOut(auth)}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 rounded-xl transition-colors"
+              >
+                <LogOut className="w-4 h-4" />
+                Sair
+              </button>
+            </div>
+          </aside>
+
+          {/* Main Content */}
+          <main className="flex-1 h-screen overflow-y-auto p-4 md:p-10">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeTab}
+                initial={{ opacity: 0, x: 10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -10 }}
+                transition={{ duration: 0.2 }}
+                className="max-w-6xl mx-auto"
+              >
+                {activeTab === 'dashboard' && <Dashboard user={user} />}
+                {activeTab === 'planner' && <StudyPlanner user={user} />}
+                {activeTab === 'galpao' && <Galpao user={user} onStudyChunk={handleStudyChunk} />}
+                {activeTab === 'materials' && <PDFUpload user={user} chunk={activeChunk} />}
+                {activeTab === 'cycle' && <StudyCycle user={user} />}
+                {activeTab === 'tutor' && <AITutor user={user} />}
+              </motion.div>
+            </AnimatePresence>
+          </main>
+        </div>
+      </ToastProvider>
     </ErrorBoundary>
   );
 }

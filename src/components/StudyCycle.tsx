@@ -15,8 +15,10 @@ import {
   ArrowRight
 } from 'lucide-react';
 import { motion } from 'motion/react';
+import { useToast } from './Toast';
 
 export default function StudyCycle({ user }: { user: FirebaseUser }) {
+  const { showToast } = useToast();
   const [blocks, setBlocks] = useState([
     { id: 1, subject: 'Seguridade Social', duration: 30 },
     { id: 2, subject: 'Português', duration: 30 },
@@ -83,7 +85,7 @@ export default function StudyCycle({ user }: { user: FirebaseUser }) {
       completed: true,
       blocks: blocks.map(b => b.subject)
     });
-    alert('Sessão de 2h concluída e salva com sucesso!');
+    showToast('Sessão de 2h concluída e salva com sucesso!', 'success');
     resetSession();
   };
 

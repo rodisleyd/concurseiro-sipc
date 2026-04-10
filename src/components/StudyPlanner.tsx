@@ -12,8 +12,10 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { motion } from 'motion/react';
+import { useToast } from './Toast';
 
 export default function StudyPlanner({ user }: { user: FirebaseUser }) {
+  const { showToast } = useToast();
   const [subjects, setSubjects] = useState([
     { name: 'Seguridade Social', weight: 58 },
     { name: 'Português', weight: 15 },
@@ -59,7 +61,7 @@ export default function StudyPlanner({ user }: { user: FirebaseUser }) {
       totalStudyHours: totalHours,
       dailyHoursGoal: dailyGoal
     });
-    alert('Configurações salvas!');
+    showToast('Configurações salvas com sucesso!', 'success');
   };
 
   const generatePlan = async () => {

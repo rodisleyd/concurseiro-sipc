@@ -16,8 +16,10 @@ import {
   Archive
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { useToast } from './Toast';
 
 export default function PDFUpload({ user, chunk }: { user: FirebaseUser, chunk?: any }) {
+  const { showToast } = useToast();
   const [isProcessing, setIsProcessing] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [questions, setQuestions] = useState<any[]>([]);
@@ -70,7 +72,7 @@ export default function PDFUpload({ user, chunk }: { user: FirebaseUser, chunk?:
       setMindMap(mindMapData);
     } catch (error) {
       console.error(error);
-      alert("Erro ao analisar via IA. O servidor pode estar sobrecarregado.");
+      showToast("Erro ao analisar via IA. O servidor pode estar sobrecarregado.", "error");
     } finally {
       setIsProcessing(false);
     }
@@ -86,8 +88,9 @@ export default function PDFUpload({ user, chunk }: { user: FirebaseUser, chunk?:
         questionsData: questions
       });
       setSavedSuccess(true);
+      showToast('Aula salva no seu Galpão!', 'success');
     } catch (e) {
-      alert("Erro ao salvar o material.");
+      showToast("Erro ao salvar o material.", "error");
     } finally {
       setIsSaving(false);
     }

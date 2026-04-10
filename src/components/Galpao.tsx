@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import * as pdfjsLib from 'pdfjs-dist';
+import { useToast } from './Toast';
 
 // Carga do worker via CDN (mesmo do PDFUpload)
 pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
@@ -70,8 +71,7 @@ export default function Galpao({ user, onStudyChunk }: { user: FirebaseUser, onS
 
     } catch (err: any) {
       console.error("ERRO NO GALPAO:", err);
-      // Se for uma string parseada ou objeto Error, mostra os detalhes pra investigar
-      alert(`Ocorreu um erro: ${err?.message || JSON.stringify(err)}`);
+      showToast(`Ocorreu um erro: ${err?.message || 'Falha na IA'}`, 'error');
     } finally {
       setIsProcessing(false);
       setLoadingMsg('');
@@ -82,8 +82,9 @@ export default function Galpao({ user, onStudyChunk }: { user: FirebaseUser, onS
     if (!window.confirm('Tem certeza que deseja excluir esta aula?')) return;
     try {
       await studyService.deleteGalpaoChunk(user.uid, chunkId);
+      showToast('Aula excluída do Galpão.', 'info');
     } catch (err) {
-      alert('Erro ao excluir a aula.');
+      showToast('Erro ao excluir a aula.', 'error');
     }
   };
 
@@ -91,8 +92,9 @@ export default function Galpao({ user, onStudyChunk }: { user: FirebaseUser, onS
     if (!window.confirm(`Tem certeza que deseja excluir toda a apostila "${fileName}"? Isso apagará todas as aulas relacionadas.`)) return;
     try {
       await studyService.deleteGalpaoMaterial(user.uid, sourceId);
+      showToast('Apostila completa removida.', 'info');
     } catch (err) {
-      alert('Erro ao excluir a apostila.');
+      showToast('Erro ao excluir a apostila.', 'error');
     }
   };
 
