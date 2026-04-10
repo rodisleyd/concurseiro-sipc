@@ -9,7 +9,8 @@ import {
   ChevronRight,
   Loader2,
   CheckCircle2,
-  Archive
+  Archive,
+  Trash2
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import * as pdfjsLib from 'pdfjs-dist';
@@ -74,6 +75,24 @@ export default function Galpao({ user, onStudyChunk }: { user: FirebaseUser, onS
     } finally {
       setIsProcessing(false);
       setLoadingMsg('');
+    }
+  };
+
+  const handleDeleteChunk = async (chunkId: string) => {
+    if (!window.confirm('Tem certeza que deseja excluir esta aula?')) return;
+    try {
+      await studyService.deleteGalpaoChunk(user.uid, chunkId);
+    } catch (err) {
+      alert('Erro ao excluir a aula.');
+    }
+  };
+
+  const handleDeleteMaterial = async (sourceId: string, fileName: string) => {
+    if (!window.confirm(`Tem certeza que deseja excluir toda a apostila "${fileName}"? Isso apagará todas as aulas relacionadas.`)) return;
+    try {
+      await studyService.deleteGalpaoMaterial(user.uid, sourceId);
+    } catch (err) {
+      alert('Erro ao excluir a apostila.');
     }
   };
 
@@ -155,6 +174,13 @@ export default function Galpao({ user, onStudyChunk }: { user: FirebaseUser, onS
                     );
                   })()}
                 </div>
+                <button 
+                  onClick={() => handleDeleteMaterial(sourceId, chunks[0].fileName)}
+                  className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                  title="Excluir Apostila Inteira"
+                >
+                  <Trash2 className="w-5 h-5" />
+                </button>
               </div>
               
               <div className="space-y-3 mt-4">
@@ -173,17 +199,26 @@ export default function Galpao({ user, onStudyChunk }: { user: FirebaseUser, onS
                         </p>
                       </div>
                     </div>
-                    <button 
-                      onClick={() => onStudyChunk(chunk)}
-                      className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 ${
-                        chunk.processedAt 
-                        ? 'bg-slate-100 text-slate-600 hover:bg-indigo-600 hover:text-white' 
-                        : 'bg-indigo-600 text-white shadow-md shadow-indigo-100'
-                      }`}
-                    >
-                      {chunk.processedAt ? 'Revisar' : 'Gerar Aula'}
-                      <ChevronRight className="w-3.5 h-3.5" />
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button 
+                        onClick={() => handleDeleteChunk(chunk.id)}
+                        className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                        title="Excluir Tópico"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                      <button 
+                        onClick={() => onStudyChunk(chunk)}
+                        className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 ${
+                          chunk.processedAt 
+                          ? 'bg-slate-100 text-slate-600 hover:bg-indigo-600 hover:text-white' 
+                          : 'bg-indigo-600 text-white shadow-md shadow-indigo-100'
+                        }`}
+                      >
+                        {chunk.processedAt ? 'Revisar' : 'Gerar Aula'}
+                        <ChevronRight className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>

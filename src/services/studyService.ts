@@ -9,6 +9,8 @@ import {
   onSnapshot,
   addDoc,
   updateDoc,
+  deleteDoc,
+  writeBatch,
   Timestamp,
   getDocFromServer
 } from 'firebase/firestore';
@@ -187,6 +189,30 @@ export const studyService = {
       });
     } catch (error) {
       handleFirestoreError(error, OperationType.UPDATE, path);
+    }
+  },
+  
+  async deleteGalpaoChunk(userId: string, chunkId: string) {
+    const path = `users/${userId}/galpao/${chunkId}`;
+    try {
+      await deleteDoc(doc(db, 'users', userId, 'galpao', chunkId));
+    } catch (error) {
+      handleFirestoreError(error, OperationType.DELETE, path);
+    }
+  },
+
+  async deleteGalpaoMaterial(userId: string, sourceId: string) {
+    const path = `users/${userId}/galpao [Batch]`;
+    try {
+      const q = query(collection(db, 'users', userId, 'galpao'), where('sourceId', '==', sourceId));
+      const snapshot = await getDocs(q);
+      const batch = writeBatch(db);
+      snapshot.docs.forEach((doc) => {
+        batch.delete(doc.ref);
+      });
+      await batch.commit();
+    } catch (error) {
+      handleFirestoreError(error, OperationType.DELETE, path);
     }
   }
 };
