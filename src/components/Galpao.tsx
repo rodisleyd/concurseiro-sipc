@@ -186,20 +186,20 @@ export default function Galpao({ user, onStudyChunk }: { user: FirebaseUser, onS
               <div className="space-y-3 mt-4">
                 {chunks.map((chunk, idx) => (
                   <div key={chunk.id} className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 border border-slate-100 hover:border-indigo-200 hover:bg-indigo-50/50 transition-colors group">
-                    <div className="flex items-center gap-3 overflow-hidden">
+                    <div className="flex-1 flex items-center gap-3 overflow-hidden">
                       {chunk.processedAt ? (
                          <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
                       ) : (
                          <div className="w-5 h-5 rounded-full border-2 border-slate-300 shrink-0" />
                       )}
-                      <div className="min-w-0">
+                      <div className="min-w-0 flex-1">
                         <p className="font-bold text-sm text-gray-800 truncate">{chunk.title}</p>
                         <p className="text-xs text-gray-500">
                           {chunk.processedAt ? 'Aula Pronta' : 'Aguardando processamento'}
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 ml-4">
                       <button 
                         onClick={() => handleDeleteChunk(chunk.id)}
                         className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all opacity-0 group-hover:opacity-100"
@@ -209,7 +209,7 @@ export default function Galpao({ user, onStudyChunk }: { user: FirebaseUser, onS
                       </button>
                       <button 
                         onClick={() => onStudyChunk(chunk)}
-                        className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 ${
+                        className={`w-32 py-2 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center justify-center gap-1.5 ${
                           chunk.processedAt 
                           ? 'bg-slate-100 text-slate-600 hover:bg-indigo-600 hover:text-white' 
                           : 'bg-indigo-600 text-white shadow-md shadow-indigo-100'
