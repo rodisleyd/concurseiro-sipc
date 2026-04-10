@@ -124,7 +124,7 @@ export default function App() {
         <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row">
           {/* ... existing sidebar and main code ... */}
           {/* Sidebar */}
-          <aside className="w-full md:w-72 bg-white border-r border-slate-200 flex flex-col">
+          <aside className="w-full md:w-72 bg-white border-r border-slate-200 flex flex-col print:hidden">
             <div className="p-8 flex items-center gap-3">
               <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center">
                 <GraduationCap className="w-6 h-6 text-white" />

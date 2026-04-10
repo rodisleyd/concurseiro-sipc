@@ -9,7 +9,8 @@ import {
   Save,
   Clock,
   Weight,
-  AlertCircle
+  AlertCircle,
+  Printer
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useToast } from './Toast';
@@ -96,7 +97,7 @@ export default function StudyPlanner({ user }: { user: FirebaseUser }) {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Settings Panel */}
-        <div className="lg:col-span-1 space-y-6">
+        <div className="lg:col-span-1 space-y-6 print:hidden">
           <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
             <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
               <Clock className="w-5 h-5 text-indigo-600" />
@@ -193,8 +194,12 @@ export default function StudyPlanner({ user }: { user: FirebaseUser }) {
         <div className="lg:col-span-2">
           {plan.length > 0 ? (
             <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
-              <div className="p-6 border-b border-slate-100 bg-slate-50/50">
+              <div className="p-6 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
                 <h3 className="font-bold text-gray-900">Cronograma Sugerido</h3>
+                <button onClick={() => window.print()} className="print:hidden p-2 text-indigo-600 hover:bg-indigo-100 rounded-lg transition-colors flex items-center gap-2 text-sm font-semibold" title="Imprimir Cronograma">
+                  <Printer className="w-4 h-4" />
+                  Imprimir PDF
+                </button>
               </div>
               <div className="divide-y divide-slate-100">
                 {plan.map((item, i) => (
