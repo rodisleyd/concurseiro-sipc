@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { User as FirebaseUser } from 'firebase/auth';
 import { studyService } from '../services/studyService';
+import { useStudySession } from '../contexts/StudySessionContext';
 import { 
   BarChart, 
   Bar, 
@@ -21,6 +22,7 @@ import {
 } from 'lucide-react';
 
 export default function Dashboard({ user }: { user: FirebaseUser }) {
+  const { blocks, activeBlockIndex } = useStudySession();
   const [sessions, setSessions] = useState<any[]>([]);
   const [userData, setUserData] = useState<any>(null);
 
@@ -39,6 +41,16 @@ export default function Dashboard({ user }: { user: FirebaseUser }) {
 
   const totalMinutes = sessions.reduce((acc, s) => acc + (s.durationMinutes || 0), 0);
   const totalHours = (totalMinutes / 60).toFixed(1);
+  const totalHoursNum = totalMinutes / 60;
+  
+  const userLevel = Math.floor(totalHoursNum / 10) + 1;
+  const nextLevelParams = `Faltam ${Math.ceil((userLevel * 10) - totalHoursNum)}h pro lvl ${userLevel + 1}`;
+
+  const avgPerformance = sessions.length > 0 
+    ? Math.round(sessions.reduce((acc, s) => acc + (s.performance || 0), 0) / sessions.length)
+    : 0;
+
+  const upcomingBlock = blocks[activeBlockIndex]?.subject || 'Nenhuma configurada';
 
   const chartData = sessions.slice(-7).map(s => ({
     name: new Date(s.startTime).toLocaleDateString('pt-BR', { weekday: 'short' }),
@@ -83,15 +95,15 @@ export default function Dashboard({ user }: { user: FirebaseUser }) {
         <StatCard 
           icon={TrendingUp} 
           label="Desempenho Médio" 
-          value="82%" 
-          subValue="Evolução de 5%"
+          value={`${avgPerformance}%`}
+          subValue={sessions.length > 0 ? "Global" : "Aguardando mais dados"}
           color="bg-amber-500"
         />
         <StatCard 
           icon={Trophy} 
-          label="Ranking" 
-          value="#12" 
-          subValue="Top 5% dos alunos"
+          label="Seu Nível" 
+          value={`Lvl ${userLevel}`} 
+          subValue={nextLevelParams}
           color="bg-indigo-500"
         />
       </div>
@@ -140,8 +152,8 @@ export default function Dashboard({ user }: { user: FirebaseUser }) {
         <div className="relative z-10">
           <h3 className="text-xl font-bold mb-2">Pronto para a próxima sessão?</h3>
           <p className="text-indigo-100 opacity-90 mb-6 max-w-md">
-            Seu próximo bloco é de Seguridade Social (58% de peso). 
-            Mantenha o foco para atingir sua meta diária!
+            Sua matéria da vez no ciclo é **{upcomingBlock}**. 
+            Mantenha o foco para acumular XP e subir de nível hoje!
           </p>
           <button className="bg-white text-indigo-600 px-6 py-3 rounded-xl font-bold hover:bg-indigo-50 transition-colors">
             Começar Agora
