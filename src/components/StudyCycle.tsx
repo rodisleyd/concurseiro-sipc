@@ -83,12 +83,12 @@ export default function StudyCycle({ user }: { user: FirebaseUser }) {
   return (
     <div className="max-w-5xl mx-auto space-y-8 pb-10">
       <header className="text-center">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Ciclo de Estudo Alternado (2h)</h1>
-        <p className="text-gray-500">Metodologia P.E.A.A.F - Evite a fadiga alternando matérias a cada 30 minutos.</p>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Ciclo de Estudo Alternado (1.5h)</h1>
+        <p className="text-gray-500">Metodologia P.E.A.A.F - Foque no aprendizado alternando matérias a cada 30 minutos.</p>
       </header>
 
       {/* Blocks Indicator */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {blocks.map((block, index) => (
           <div 
             key={block.id}
@@ -189,125 +189,8 @@ export default function StudyCycle({ user }: { user: FirebaseUser }) {
 
         {/* Action / Methodology Section */}
         <div className="lg:col-span-2 bg-white rounded-[32px] shadow-sm border border-slate-100 overflow-hidden flex flex-col">
-          <div className="p-8 border-b border-slate-100 bg-slate-50">
-            <div className="flex items-center justify-between gap-4">
-              <h3 className="text-lg font-bold text-gray-900 mb-2">
-                {isRevisionBlock ? 'Sua Revisão e Exercícios:' : 'Suas metas neste bloco de 30m:'}
-              </h3>
-              {isRevisionBlock && (
-                <span className="px-3 py-1 bg-indigo-600 text-white text-[10px] font-black uppercase tracking-widest rounded-full animate-pulse">
-                  Modo Revisão Ativado
-                </span>
-              )}
-            </div>
-            <p className="text-sm text-gray-500">
-              {isRevisionBlock 
-                ? 'Consolide o que você aprendeu nos blocos anteriores através de questões.'
-                : `Siga os passos P.E.A para garantir o máximo de retenção na matéria ${currentBlock.subject}.`}
-            </p>
-          </div>
-
           <div className="flex-1 p-8 space-y-6 overflow-y-auto">
-            {isRevisionBlock ? (
-              <>
-                {/* 1. Revisar Notas */}
-                <div className="flex gap-4">
-                  <div className="w-10 h-10 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0">
-                    <FileText className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-gray-900 text-lg">1. Revisar Notas (5 min)</h4>
-                    <p className="text-gray-600 text-sm mt-1">
-                      Passe os olhos nas suas anotações, mapas mentais e grifos feitos nos blocos 1, 2 e 3. Reative a memória de curto prazo.
-                    </p>
-                  </div>
-                </div>
-
-                {/* 2. Resolver Questões */}
-                <div className="flex gap-4">
-                  <div className="w-10 h-10 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center shrink-0">
-                    <Pencil className="w-5 h-5" />
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="font-bold text-gray-900 text-lg">2. Simulado Express (20 min)</h4>
-                    <p className="text-gray-600 text-sm mt-1 mb-4">
-                      Hora de testar seu conhecimento. Gere questões inéditas com nossa IA baseada no que você acabou de estudar.
-                    </p>
-                    
-                    <button 
-                      onClick={handleGenerateQuestions}
-                      disabled={isGeneratingQuestions}
-                      className="flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-2xl text-sm font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 disabled:opacity-50"
-                    >
-                      {isGeneratingQuestions ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-                      {questions.length > 0 ? 'Gerar novas questões' : 'Gerar Simulado com IA'}
-                    </button>
-
-                    {questions.length > 0 && (
-                      <div className="mt-6 space-y-8">
-                        {questions.map((q, qIdx) => (
-                          <div key={qIdx} className="bg-slate-50 p-6 rounded-3xl border border-slate-200">
-                            <p className="font-bold text-gray-900 mb-4">{qIdx + 1}. {q.text}</p>
-                            <div className="space-y-2">
-                              {q.options.map((opt: string, oIdx: number) => {
-                                const isSelected = selectedAnswers[qIdx] === oIdx;
-                                const isCorrect = q.correctOption === oIdx;
-                                const showResult = selectedAnswers[qIdx] !== undefined;
-
-                                return (
-                                  <button
-                                    key={oIdx}
-                                    onClick={() => !showResult && setSelectedAnswers(prev => ({ ...prev, [qIdx]: oIdx }))}
-                                    className={`w-full text-left p-4 rounded-xl border-2 transition-all ${
-                                      showResult
-                                        ? isCorrect
-                                          ? 'border-emerald-500 bg-emerald-50 text-emerald-900'
-                                          : isSelected
-                                            ? 'border-red-500 bg-red-50 text-red-900'
-                                            : 'border-transparent bg-white text-gray-400'
-                                        : isSelected
-                                          ? 'border-indigo-600 bg-indigo-50'
-                                          : 'border-slate-100 bg-white hover:border-indigo-200'
-                                    }`}
-                                  >
-                                    <span className="font-bold mr-2">{String.fromCharCode(65 + oIdx)})</span>
-                                    {opt}
-                                  </button>
-                                );
-                              })}
-                            </div>
-                            {selectedAnswers[qIdx] !== undefined && (
-                              <motion.div 
-                                initial={{ opacity: 0, y: 5 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                className="mt-4 p-4 bg-indigo-50/50 rounded-2xl text-xs text-indigo-900 leading-relaxed border border-indigo-100"
-                              >
-                                <strong>Explicação:</strong> {q.explanation}
-                              </motion.div>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* 3. Analisar Erros */}
-                <div className="flex gap-4">
-                  <div className="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
-                    <CheckCircle2 className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-gray-900 text-lg">3. Analisar Erros (5 min)</h4>
-                    <p className="text-gray-600 text-sm mt-1">
-                      Não apenas resolva. Entenda o porquê de cada erro. Se a explicação da IA não for suficiente, chame o Professor IA no menu lateral.
-                    </p>
-                  </div>
-                </div>
-              </>
-            ) : (
-              <>
-                {/* Preparar */}
+            {/* Preparar */}
             <div className="flex gap-4">
               <div className="w-10 h-10 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0">
                 <BookOpen className="w-5 h-5" />
@@ -364,9 +247,6 @@ export default function StudyCycle({ user }: { user: FirebaseUser }) {
                 </p>
               </div>
             </div>
-            
-              </>
-            )}
           </div>
         </div>
       </div>

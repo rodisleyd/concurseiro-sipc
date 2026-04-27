@@ -31,7 +31,6 @@ export function StudySessionProvider({ children, user }: { children: React.React
     { id: 1, subject: 'Matéria 1', duration: 30 },
     { id: 2, subject: 'Matéria 2', duration: 30 },
     { id: 3, subject: 'Matéria 3', duration: 30 },
-    { id: 4, subject: 'Revisão / Questões', duration: 30 },
   ]);
 
   const [activeBlockIndex, setActiveBlockIndex] = useState(0);
@@ -74,7 +73,6 @@ export function StudySessionProvider({ children, user }: { children: React.React
           { id: 1, subject: sorted[0]?.name || 'Matéria 1', duration: 30 },
           { id: 2, subject: sorted[1]?.name || 'Matéria 2', duration: 30 },
           { id: 3, subject: sorted[2]?.name || 'Matéria 3', duration: 30 },
-          { id: 4, subject: 'Revisão / Questões', duration: 30 },
         ];
         setBlocks(newBlocks);
         // Atualiza iniciar se a sessão estiver inativa/zerada
@@ -170,12 +168,12 @@ export function StudySessionProvider({ children, user }: { children: React.React
     playFinishAlert();
     await studyService.addSession(user.uid, {
       subject: 'Ciclo Completo',
-      durationMinutes: 120, // 4 x 30m
+      durationMinutes: 90, // 3 x 30m
       performance: 85,
       completed: true,
       blocks: blocks.map(b => b.subject)
     });
-    showToast('Sessão de 2h concluída e salva com sucesso!', 'success');
+    showToast('Sessão de 1.5h concluída e salva com sucesso!', 'success');
     resetSession();
   };
 
