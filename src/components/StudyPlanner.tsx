@@ -10,7 +10,8 @@ import {
   Clock,
   Weight,
   AlertCircle,
-  Printer
+  Printer,
+  CheckCircle2
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useToast } from './Toast';
@@ -107,6 +108,11 @@ export default function StudyPlanner({ user }: { user: FirebaseUser }) {
     } finally {
       setIsGenerating(false);
     }
+  };
+  const toggleBlockCompletion = (index: number) => {
+    const newPlan = [...plan];
+    newPlan[index].completed = !newPlan[index].completed;
+    setPlan(newPlan);
   };
 
   const downloadPDF = () => {
@@ -305,10 +311,17 @@ export default function StudyPlanner({ user }: { user: FirebaseUser }) {
                     className="p-6 flex items-center justify-between hover:bg-slate-50 transition-colors"
                   >
                     <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center text-indigo-600 font-bold">
-                        {i + 1}
-                      </div>
-                      <div>
+                      <button 
+                        onClick={() => toggleBlockCompletion(i)}
+                        className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${
+                          item.completed 
+                            ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-100' 
+                            : 'bg-indigo-100 text-indigo-600 hover:bg-indigo-200'
+                        }`}
+                      >
+                        {item.completed ? <CheckCircle2 className="w-6 h-6" /> : i + 1}
+                      </button>
+                      <div className={item.completed ? 'opacity-50 line-through' : ''}>
                         <h4 className="font-bold text-gray-900">{item.subject}</h4>
                         <p className="text-sm text-gray-500">{item.focusArea}</p>
                       </div>
