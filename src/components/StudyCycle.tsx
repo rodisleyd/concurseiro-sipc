@@ -352,6 +352,8 @@ export default function StudyCycle({ user }: { user: FirebaseUser }) {
               </div>
             </div>
             
+              </>
+            )}
           </div>
         </div>
       </div>
