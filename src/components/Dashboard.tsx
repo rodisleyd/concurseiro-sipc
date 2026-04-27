@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 
 export default function Dashboard({ user }: { user: FirebaseUser }) {
-  const { blocks, activeBlockIndex } = useStudySession();
+  const { blocks, activeBlockIndex, completedBlocks } = useStudySession();
   const [sessions, setSessions] = useState<any[]>([]);
   const [userData, setUserData] = useState<any>(null);
 
@@ -39,7 +39,9 @@ export default function Dashboard({ user }: { user: FirebaseUser }) {
     return () => unsubscribe();
   }, [user.uid]);
 
-  const totalMinutes = sessions.reduce((acc, s) => acc + (s.durationMinutes || 0), 0);
+  // Calcula os minutos das sessões salvas + os blocos concluídos na sessão atual
+  const currentSessionMinutes = completedBlocks.length * 30;
+  const totalMinutes = sessions.reduce((acc, s) => acc + (s.durationMinutes || 0), 0) + currentSessionMinutes;
   const totalHours = (totalMinutes / 60).toFixed(1);
   const totalHoursNum = totalMinutes / 60;
   
