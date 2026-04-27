@@ -43,12 +43,13 @@ export function StudySessionProvider({ children, user }: { children: React.React
     const saved = localStorage.getItem('current_study_session');
     if (saved) {
       try {
-        const { index, completed, time } = JSON.parse(saved);
+        const { index, completed, time, savedBlocks } = JSON.parse(saved);
         // Só carrega se o índice for válido para o novo número de blocos
         if (index < blocks.length) {
           setActiveBlockIndex(index);
           setCompletedBlocks(completed.filter((i: number) => i < blocks.length));
           setTimeLeft(time);
+          if (savedBlocks) setBlocks(savedBlocks);
         } else {
           localStorage.removeItem('current_study_session');
         }
@@ -60,12 +61,14 @@ export function StudySessionProvider({ children, user }: { children: React.React
 
   // Salvar progresso automaticamente
   useEffect(() => {
-    localStorage.setItem('current_study_session', JSON.stringify({
+    const data = {
       index: activeBlockIndex,
       completed: completedBlocks,
-      time: timeLeft
-    }));
-  }, [activeBlockIndex, completedBlocks, timeLeft]);
+      time: timeLeft,
+      savedBlocks: blocks
+    };
+    localStorage.setItem('current_study_session', JSON.stringify(data));
+  }, [activeBlockIndex, completedBlocks, timeLeft, blocks]);
 
   useEffect(() => {
     if (!user) return;
