@@ -151,7 +151,7 @@ export default function StudyCycle({ user }: { user: FirebaseUser }) {
                 strokeWidth="8"
                 fill="transparent"
                 strokeDasharray={653}
-                animate={{ strokeDashoffset: 653 * (1 - timeLeft / (currentBlock.duration * 60)) }}
+                animate={{ strokeDashoffset: 653 * (1 - timeLeft / ((currentBlock?.duration || 30) * 60)) }}
                 className="text-indigo-600"
                 strokeLinecap="round"
               />
