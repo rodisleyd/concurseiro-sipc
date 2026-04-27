@@ -37,6 +37,30 @@ export function StudySessionProvider({ children, user }: { children: React.React
   const [isActive, setIsActive] = useState(false);
   const [completedBlocks, setCompletedBlocks] = useState<number[]>([]);
 
+  // Carregar progresso salvo
+  useEffect(() => {
+    const saved = localStorage.getItem('current_study_session');
+    if (saved) {
+      try {
+        const { index, completed, time } = JSON.parse(saved);
+        setActiveBlockIndex(index);
+        setCompletedBlocks(completed);
+        setTimeLeft(time);
+      } catch (e) {
+        console.error("Erro ao carregar sessão salva", e);
+      }
+    }
+  }, []);
+
+  // Salvar progresso automaticamente
+  useEffect(() => {
+    localStorage.setItem('current_study_session', JSON.stringify({
+      index: activeBlockIndex,
+      completed: completedBlocks,
+      time: timeLeft
+    }));
+  }, [activeBlockIndex, completedBlocks, timeLeft]);
+
   useEffect(() => {
     if (!user) return;
     const loadSubjects = async () => {

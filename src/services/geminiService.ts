@@ -152,6 +152,35 @@ export const geminiService = {
     return JSON.parse(response.text || "{}");
   },
 
+  async generateQuestionsForSubjects(subjects: string[]) {
+    const prompt = `Gere 5 questões de múltipla escolha de nível concurso público abrangendo os seguintes temas que foram estudados hoje: ${subjects.join(', ')}.
+    As questões devem ser desafiadoras e variadas entre os temas.
+    IMPORTANTE: Retorne a resposta estritamente em PORTUGUÊS DO BRASIL.`;
+
+    const response = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.ARRAY,
+          items: {
+            type: Type.OBJECT,
+            properties: {
+              text: { type: Type.STRING },
+              options: { type: Type.ARRAY, items: { type: Type.STRING } },
+              correctOption: { type: Type.NUMBER },
+              explanation: { type: Type.STRING }
+            },
+            required: ["text", "options", "correctOption", "explanation"]
+          }
+        }
+      }
+    });
+
+    return JSON.parse(response.text || "[]");
+  },
+
   async splitMaterialIntoChunks(text: string) {
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
