@@ -130,7 +130,7 @@ export default function StudyCycle({ user }: { user: FirebaseUser }) {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Timer Section */}
         <div className="lg:col-span-1 bg-white rounded-[32px] shadow-lg border border-slate-100 p-8 flex flex-col items-center flex-1">
-          <h3 className="text-xl font-bold text-gray-900 mb-6 text-center">{currentBlock.subject}</h3>
+          <h3 className="text-xl font-bold text-gray-900 mb-6 text-center">{currentBlock?.subject || 'Carregando...'}</h3>
           
           <div className="relative w-56 h-56 flex items-center justify-center mb-8">
             <svg className="w-full h-full transform -rotate-90">

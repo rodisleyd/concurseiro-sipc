@@ -44,14 +44,19 @@ export function StudySessionProvider({ children, user }: { children: React.React
     if (saved) {
       try {
         const { index, completed, time } = JSON.parse(saved);
-        setActiveBlockIndex(index);
-        setCompletedBlocks(completed);
-        setTimeLeft(time);
+        // Só carrega se o índice for válido para o novo número de blocos
+        if (index < blocks.length) {
+          setActiveBlockIndex(index);
+          setCompletedBlocks(completed.filter((i: number) => i < blocks.length));
+          setTimeLeft(time);
+        } else {
+          localStorage.removeItem('current_study_session');
+        }
       } catch (e) {
         console.error("Erro ao carregar sessão salva", e);
       }
     }
-  }, []);
+  }, [blocks.length]);
 
   // Salvar progresso automaticamente
   useEffect(() => {
