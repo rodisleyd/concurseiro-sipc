@@ -40,7 +40,10 @@ export default function StudyCycle({ user }: { user: FirebaseUser }) {
   const [isGeneratingQuestions, setIsGeneratingQuestions] = useState(false);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<number, number>>({});
 
-  const isRevisionBlock = activeBlockIndex === 3 || blocks[activeBlockIndex].subject.includes('Revisão');
+  const currentBlock = blocks[activeBlockIndex];
+  const isRevisionBlock = activeBlockIndex === 3 || 
+                          currentBlock?.id === 4 || 
+                          currentBlock?.subject?.toLowerCase().includes('revisão');
 
   const handleGenerateQuestions = async () => {
     setIsGeneratingQuestions(true);
@@ -184,9 +187,16 @@ export default function StudyCycle({ user }: { user: FirebaseUser }) {
         {/* Action / Methodology Section */}
         <div className="lg:col-span-2 bg-white rounded-[32px] shadow-sm border border-slate-100 overflow-hidden flex flex-col">
           <div className="p-8 border-b border-slate-100 bg-slate-50">
-            <h3 className="text-lg font-bold text-gray-900 mb-2">
-              {isRevisionBlock ? 'Sua Revisão e Exercícios:' : 'Suas metas neste bloco de 30m:'}
-            </h3>
+            <div className="flex items-center justify-between gap-4">
+              <h3 className="text-lg font-bold text-gray-900 mb-2">
+                {isRevisionBlock ? 'Sua Revisão e Exercícios:' : 'Suas metas neste bloco de 30m:'}
+              </h3>
+              {isRevisionBlock && (
+                <span className="px-3 py-1 bg-indigo-600 text-white text-[10px] font-black uppercase tracking-widest rounded-full animate-pulse">
+                  Modo Revisão Ativado
+                </span>
+              )}
+            </div>
             <p className="text-sm text-gray-500">
               {isRevisionBlock 
                 ? 'Consolide o que você aprendeu nos blocos anteriores através de questões.'
