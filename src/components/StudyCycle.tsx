@@ -78,8 +78,6 @@ export default function StudyCycle({ user }: { user: FirebaseUser }) {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const currentBlock = blocks[activeBlockIndex];
-
 
   return (
     <div className="max-w-5xl mx-auto space-y-8 pb-10">
