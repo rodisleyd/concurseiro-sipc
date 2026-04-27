@@ -31,7 +31,8 @@ export default function StudyCycle({ user }: { user: FirebaseUser }) {
     toggleTimer, 
     resetSession, 
     skipToNextBlock,
-    jumpToBlock
+    jumpToBlock,
+    updateBlockSubject
   } = useStudySession();
 
   const [explanation, setExplanation] = useState('');
@@ -113,9 +114,13 @@ export default function StudyCycle({ user }: { user: FirebaseUser }) {
                 </span>
                 {completedBlocks.includes(index) && <CheckCircle2 className="w-5 h-5 text-emerald-600" />}
               </div>
-              <p className={`font-bold truncate ${activeBlockIndex === index ? 'text-indigo-900 text-lg' : 'text-gray-600'}`}>
-                {block.subject}
-              </p>
+              <input 
+                type="text"
+                value={block.subject}
+                onChange={(e) => updateBlockSubject(index, e.target.value)}
+                onClick={(e) => e.stopPropagation()}
+                className={`w-full bg-transparent border-none font-bold outline-none focus:ring-1 focus:ring-indigo-300 rounded px-1 -ml-1 ${activeBlockIndex === index ? 'text-indigo-900 text-lg' : 'text-gray-600'}`}
+              />
               <p className="text-xs text-gray-500 mt-1">{block.duration} min</p>
             </div>
           </div>

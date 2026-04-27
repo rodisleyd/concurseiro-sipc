@@ -19,6 +19,7 @@ interface StudySessionContextType {
   resetSession: () => void;
   skipToNextBlock: () => void;
   jumpToBlock: (index: number) => void;
+  updateBlockSubject: (index: number, newSubject: string) => void;
 }
 
 const StudySessionContext = createContext<StudySessionContextType | undefined>(undefined);
@@ -147,6 +148,12 @@ export function StudySessionProvider({ children, user }: { children: React.React
     setIsActive(false);
   };
 
+  const updateBlockSubject = (index: number, newSubject: string) => {
+    const newBlocks = [...blocks];
+    newBlocks[index].subject = newSubject;
+    setBlocks(newBlocks);
+  };
+
   const toggleTimer = () => {
     setIsActive(!isActive);
   };
@@ -182,7 +189,8 @@ export function StudySessionProvider({ children, user }: { children: React.React
       toggleTimer,
       resetSession,
       skipToNextBlock,
-      jumpToBlock
+      jumpToBlock,
+      updateBlockSubject
     }}>
       {children}
     </StudySessionContext.Provider>
