@@ -18,6 +18,7 @@ interface StudySessionContextType {
   toggleTimer: () => void;
   resetSession: () => void;
   skipToNextBlock: () => void;
+  jumpToBlock: (index: number) => void;
 }
 
 const StudySessionContext = createContext<StudySessionContextType | undefined>(undefined);
@@ -132,6 +133,20 @@ export function StudySessionProvider({ children, user }: { children: React.React
     handleBlockComplete();
   };
 
+  const jumpToBlock = (index: number) => {
+    // Marca os blocos anteriores como concluídos ao pular
+    const newCompleted = [...completedBlocks];
+    for (let i = 0; i < index; i++) {
+      if (!newCompleted.includes(i)) {
+        newCompleted.push(i);
+      }
+    }
+    setCompletedBlocks(newCompleted);
+    setActiveBlockIndex(index);
+    setTimeLeft(blocks[index].duration * 60);
+    setIsActive(false);
+  };
+
   const toggleTimer = () => {
     setIsActive(!isActive);
   };
@@ -166,7 +181,8 @@ export function StudySessionProvider({ children, user }: { children: React.React
       completedBlocks,
       toggleTimer,
       resetSession,
-      skipToNextBlock
+      skipToNextBlock,
+      jumpToBlock
     }}>
       {children}
     </StudySessionContext.Provider>

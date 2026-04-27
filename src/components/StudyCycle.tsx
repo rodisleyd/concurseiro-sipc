@@ -30,7 +30,8 @@ export default function StudyCycle({ user }: { user: FirebaseUser }) {
     completedBlocks, 
     toggleTimer, 
     resetSession, 
-    skipToNextBlock 
+    skipToNextBlock,
+    jumpToBlock
   } = useStudySession();
 
   const [explanation, setExplanation] = useState('');
@@ -89,7 +90,8 @@ export default function StudyCycle({ user }: { user: FirebaseUser }) {
         {blocks.map((block, index) => (
           <div 
             key={block.id}
-            className={`p-5 rounded-2xl border-2 transition-all relative overflow-hidden ${
+            onClick={() => jumpToBlock(index)}
+            className={`p-5 rounded-2xl border-2 transition-all relative overflow-hidden cursor-pointer hover:scale-[1.02] active:scale-95 ${
               activeBlockIndex === index 
                 ? 'border-indigo-600 bg-indigo-50 shadow-md' 
                 : completedBlocks.includes(index)
