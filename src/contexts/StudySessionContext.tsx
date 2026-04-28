@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { User as FirebaseUser } from 'firebase/auth';
 import { studyService } from '../services/studyService';
 import { useToast } from '../components/Toast';
@@ -20,6 +20,7 @@ interface StudySessionContextType {
   skipToNextBlock: () => void;
   jumpToBlock: (index: number) => void;
   updateBlockSubject: (index: number, newSubject: string) => void;
+  reloadData: () => Promise<void>;
 }
 
 const StudySessionContext = createContext<StudySessionContextType | undefined>(undefined);
@@ -50,71 +51,74 @@ export function StudySessionProvider({ children, user }: { children: React.React
     localStorage.setItem('current_study_session', JSON.stringify(data));
   }, [activeBlockIndex, completedBlocks, timeLeft, isDataLoaded]);
 
-  useEffect(() => {
+  const loadData = useCallback(async () => {
     if (!user) return;
-    const loadSubjects = async () => {
-      const data = await studyService.getUser(user.uid);
-      let loadedBlocks = [
-        { id: 1, subject: 'Matéria 1', duration: 30 },
-        { id: 2, subject: 'Matéria 2', duration: 30 },
-        { id: 3, subject: 'Matéria 3', duration: 30 },
-      ];
-      let planCompletedBlocks: number[] = [];
+    const data = await studyService.getUser(user.uid);
+    let loadedBlocks = [
+      { id: 1, subject: 'Matéria 1', duration: 30 },
+      { id: 2, subject: 'Matéria 2', duration: 30 },
+      { id: 3, subject: 'Matéria 3', duration: 30 },
+    ];
+    let planCompletedBlocks: number[] = [];
 
-      if (data?.plan && data.plan.length > 0) {
-        loadedBlocks = data.plan.map((item: any, idx: number) => ({
-          id: idx + 1,
-          subject: item.subject,
-          duration: item.durationMinutes || 30
-        }));
+    if (data?.plan && data.plan.length > 0) {
+      loadedBlocks = data.plan.map((item: any, idx: number) => ({
+        id: idx + 1,
+        subject: item.subject,
+        duration: item.durationMinutes || 30
+      }));
+      
+      planCompletedBlocks = data.plan
+        .map((item: any, idx: number) => item.completed ? idx : -1)
+        .filter((idx: number) => idx !== -1);
         
-        planCompletedBlocks = data.plan
-          .map((item: any, idx: number) => item.completed ? idx : -1)
-          .filter((idx: number) => idx !== -1);
-          
-      } else if (data?.subjects && data.subjects.length > 0) {
-        const sorted = [...data.subjects].sort((a, b) => b.weight - a.weight);
-        loadedBlocks = [];
-        for(let i=0; i<15; i++) {
-           const subj = sorted[i % sorted.length];
-           loadedBlocks.push({ id: i + 1, subject: subj?.name || `Matéria ${i+1}`, duration: 30 });
-        }
+    } else if (data?.subjects && data.subjects.length > 0) {
+      const sorted = [...data.subjects].sort((a, b) => b.weight - a.weight);
+      loadedBlocks = [];
+      for(let i=0; i<15; i++) {
+         const subj = sorted[i % sorted.length];
+         loadedBlocks.push({ id: i + 1, subject: subj?.name || `Matéria ${i+1}`, duration: 30 });
       }
+    }
 
-      setBlocks(loadedBlocks);
+    setBlocks(loadedBlocks);
 
-      // Now load local storage
-      const saved = localStorage.getItem('current_study_session');
-      let loadedIndex = 0;
-      let loadedCompleted = planCompletedBlocks;
-      let loadedTime = loadedBlocks[0]?.duration * 60 || 30 * 60;
-      let restoredFromStorage = false;
+    // Now load local storage
+    const saved = localStorage.getItem('current_study_session');
+    let loadedIndex = 0;
+    let loadedCompleted = planCompletedBlocks;
+    let loadedTime = loadedBlocks[0]?.duration * 60 || 30 * 60;
 
-      if (saved) {
-        try {
-          const { index, completed, time } = JSON.parse(saved);
-          if (index < loadedBlocks.length) {
-            loadedIndex = index;
-            // merge completed
-            const merged = new Set([...completed, ...planCompletedBlocks]);
-            loadedCompleted = Array.from(merged).filter((i: number) => i < loadedBlocks.length);
-            loadedTime = time;
-            restoredFromStorage = true;
-          } else {
-            localStorage.removeItem('current_study_session');
-          }
-        } catch (e) {
-          console.error("Erro ao carregar sessão salva", e);
+    if (saved) {
+      try {
+        const { index, completed, time } = JSON.parse(saved);
+        if (index < loadedBlocks.length) {
+          loadedIndex = index;
+          // merge completed
+          const merged = new Set([...completed, ...planCompletedBlocks]);
+          loadedCompleted = Array.from(merged).filter((i: number) => i < loadedBlocks.length);
+          loadedTime = time;
+        } else {
+          localStorage.removeItem('current_study_session');
         }
+      } catch (e) {
+        console.error("Erro ao carregar sessão salva", e);
       }
+    }
 
-      setActiveBlockIndex(loadedIndex);
-      setCompletedBlocks(loadedCompleted);
+    // Only override state if we actually changed data or if it's the first load
+    setActiveBlockIndex(loadedIndex);
+    setCompletedBlocks(loadedCompleted);
+    // Don't reset time if timer is running to avoid weird UX jumps, unless it's initial load
+    if (!isActive) {
       setTimeLeft(loadedTime);
-      setIsDataLoaded(true);
-    };
-    loadSubjects();
-  }, [user]);
+    }
+    setIsDataLoaded(true);
+  }, [user, isActive]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   useEffect(() => {
     let interval: any = null;
@@ -221,7 +225,8 @@ export function StudySessionProvider({ children, user }: { children: React.React
       resetSession,
       skipToNextBlock,
       jumpToBlock,
-      updateBlockSubject
+      updateBlockSubject,
+      reloadData: loadData
     }}>
       {children}
     </StudySessionContext.Provider>

@@ -32,8 +32,14 @@ export default function StudyCycle({ user }: { user: FirebaseUser }) {
     resetSession, 
     skipToNextBlock,
     jumpToBlock,
-    updateBlockSubject
+    updateBlockSubject,
+    reloadData
   } = useStudySession();
+
+  // Recarregar os dados do banco toda vez que abrir esta tela
+  useEffect(() => {
+    reloadData();
+  }, [reloadData]);
 
   const [explanation, setExplanation] = useState('');
   const [isExplaining, setIsExplaining] = useState(false);
