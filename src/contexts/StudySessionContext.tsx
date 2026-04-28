@@ -111,7 +111,7 @@ export function StudySessionProvider({ children, user }: { children: React.React
     }
 
     setActiveBlockIndex(loadedIndex);
-    setCompletedBlocks(loadedCompleted);
+    // completedBlocks agora será gerenciado pela inscrição em tempo real das sessões
     if (!isActive) {
       setTimeLeft(loadedTime);
     }
@@ -121,6 +121,31 @@ export function StudySessionProvider({ children, user }: { children: React.React
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  // INSCRIÇÃO EM TEMPO REAL: Sincroniza o Ciclo com o histórico do Dashboard
+  useEffect(() => {
+    if (!user || !isDataLoaded) return;
+
+    const unsubscribe = studyService.subscribeToSessions(user.uid, (sessionsData) => {
+      // Encontra quais índices de blocos já têm sessões gravadas
+      const completedFromSessions: number[] = [];
+      
+      // Mapeia as sessões para os blocos atuais baseando-se no nome da matéria
+      // (Para ser mais preciso, usamos o blockId que adicionamos no saveSession)
+      blocks.forEach((block, index) => {
+        const hasSession = sessionsData.some(s => 
+          s.blockId === block.id || (s.subject === block.subject && s.completed)
+        );
+        if (hasSession) {
+          completedFromSessions.push(index);
+        }
+      });
+
+      setCompletedBlocks(completedFromSessions);
+    });
+
+    return () => unsubscribe();
+  }, [user, isDataLoaded, blocks]);
 
   useEffect(() => {
     let interval: any = null;
