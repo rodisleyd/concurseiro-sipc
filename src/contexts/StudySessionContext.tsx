@@ -130,12 +130,9 @@ export function StudySessionProvider({ children, user }: { children: React.React
       // Encontra quais índices de blocos já têm sessões gravadas
       const completedFromSessions: number[] = [];
       
-      // Mapeia as sessões para os blocos atuais baseando-se no nome da matéria
-      // (Para ser mais preciso, usamos o blockId que adicionamos no saveSession)
+      // Mapeia as sessões para os blocos atuais baseando-se no blockId único
       blocks.forEach((block, index) => {
-        const hasSession = sessionsData.some(s => 
-          s.blockId === block.id || (s.subject === block.subject && s.completed)
-        );
+        const hasSession = sessionsData.some(s => s.blockId === block.id);
         if (hasSession) {
           completedFromSessions.push(index);
         }
