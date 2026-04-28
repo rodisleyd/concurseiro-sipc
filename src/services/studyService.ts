@@ -108,6 +108,15 @@ export const studyService = {
     }
   },
 
+  async updateSession(userId: string, sessionId: string, data: any) {
+    const path = `users/${userId}/sessions/${sessionId}`;
+    try {
+      await updateDoc(doc(db, 'users', userId, 'sessions', sessionId), data);
+    } catch (error) {
+      handleFirestoreError(error, OperationType.UPDATE, path);
+    }
+  },
+
   subscribeToSessions(userId: string, callback: (sessions: any[]) => void) {
     const path = `users/${userId}/sessions`;
     const q = query(collection(db, 'users', userId, 'sessions'));

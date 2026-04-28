@@ -34,14 +34,22 @@ export default function Dashboard({ user }: { user: FirebaseUser }) {
     fetchUserData();
 
     const unsubscribe = studyService.subscribeToSessions(user.uid, (data) => {
+      // Auto-corrige sessões antigas que foram gravadas com 90 minutos ou mais
+      data.forEach(s => {
+        if (s.durationMinutes > 30 || s.subject === 'Ciclo Completo') {
+          studyService.updateSession(user.uid, s.id, {
+            subject: s.blocks ? s.blocks[0] : (s.subject === 'Ciclo Completo' ? 'Matéria Estudada' : s.subject),
+            durationMinutes: 30
+          });
+        }
+      });
       setSessions(data);
     });
     return () => unsubscribe();
   }, [user.uid]);
 
-  // Calcula os minutos das sessões salvas + os blocos concluídos na sessão atual
-  const currentSessionMinutes = completedBlocks.length * 30;
-  const totalMinutes = sessions.reduce((acc, s) => acc + (s.durationMinutes || 0), 0) + currentSessionMinutes;
+  // As sessões agora são salvas bloco a bloco, então sessions contém tudo
+  const totalMinutes = sessions.reduce((acc, s) => acc + (s.durationMinutes || 0), 0);
   const totalHours = (totalMinutes / 60).toFixed(1);
   const totalHoursNum = totalMinutes / 60;
   

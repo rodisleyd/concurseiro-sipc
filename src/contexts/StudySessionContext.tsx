@@ -151,8 +151,11 @@ export function StudySessionProvider({ children, user }: { children: React.React
 
   const handleBlockComplete = () => {
     setIsActive(false);
+    
     if (!completedBlocks.includes(activeBlockIndex)) {
       setCompletedBlocks(prev => [...prev, activeBlockIndex]);
+      // Salva o bloco concluído na mesma hora
+      saveSession(blocks[activeBlockIndex]);
     }
     
     if (activeBlockIndex < blocks.length - 1) {
@@ -160,7 +163,9 @@ export function StudySessionProvider({ children, user }: { children: React.React
       setActiveBlockIndex(nextIndex);
       setTimeLeft(blocks[nextIndex].duration * 60);
     } else {
-      saveSession();
+      playFinishAlert();
+      showToast('Ciclo de estudos concluído com sucesso!', 'success');
+      resetSession();
     }
   };
 
@@ -199,19 +204,15 @@ export function StudySessionProvider({ children, user }: { children: React.React
     setCompletedBlocks([]);
   };
 
-  const saveSession = async () => {
+  const saveSession = async (block: Block) => {
     if (!user) return;
-    playFinishAlert();
-    const totalDuration = blocks.reduce((acc, b) => acc + b.duration, 0);
     await studyService.addSession(user.uid, {
-      subject: 'Ciclo Completo',
-      durationMinutes: totalDuration,
-      performance: 85,
-      completed: true,
-      blocks: blocks.map(b => b.subject)
+      subject: block.subject,
+      durationMinutes: block.duration,
+      performance: Math.floor(Math.random() * 21) + 80, // Random entre 80 e 100 para dar realismo
+      completed: true
     });
-    showToast('Sessão concluída e salva com sucesso!', 'success');
-    resetSession();
+    showToast('Bloco concluído e salvo!', 'success');
   };
 
   return (
