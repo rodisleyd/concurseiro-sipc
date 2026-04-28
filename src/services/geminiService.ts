@@ -10,7 +10,7 @@ export const geminiService = {
     Matérias e Pesos: ${JSON.stringify(subjects)}.
     
     REGRAS CRÍTICAS:
-    1. Divida o tempo proporcionalmente aos pesos, mas cada bloco de estudo deve ter entre 45 e 120 minutos. NUNCA gere blocos de milhares de minutos.
+    1. Divida o tempo proporcionalmente aos pesos. CADA bloco de estudo DEVE ter EXATAMENTE 30 minutos. Não crie blocos com durações diferentes.
     2. Intercale as matérias (não coloque a mesma matéria em 3 blocos seguidos).
     3. Gere os primeiros 15 a 20 blocos dessa jornada para começar.
     4. O campo durationMinutes deve ser um número realista para uma única sessão de estudo.
