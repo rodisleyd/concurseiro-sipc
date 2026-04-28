@@ -82,9 +82,21 @@ export default function Dashboard({ user }: { user: FirebaseUser }) {
 
   const handleResetStats = async () => {
     if (window.confirm("Isso apagará todo o histórico de horas estudadas e reiniciará o ciclo. Deseja continuar? (Útil para limpar dados de teste)")) {
+      // Deleta as sessões
       for (const s of sessions) {
         await studyService.deleteSession(user.uid, s.id);
       }
+      
+      // Reseta o status de concluído no plano (Cronograma)
+      if (userData?.plan) {
+        const newPlan = userData.plan.map((item: any) => ({ ...item, completed: false }));
+        await studyService.saveUser({
+          ...userData,
+          plan: newPlan
+        });
+        setUserData({ ...userData, plan: newPlan });
+      }
+
       localStorage.removeItem('current_study_session');
       window.location.reload();
     }
@@ -137,6 +149,11 @@ export default function Dashboard({ user }: { user: FirebaseUser }) {
           subValue={nextLevelParams}
           color="bg-indigo-500"
         />
+      </div>
+
+      <div className="bg-red-50 p-4 rounded-xl text-xs overflow-auto">
+        <p className="font-bold text-red-800">DEBUG SESSIONS (se estiver vazio, Firebase não gravou):</p>
+        <pre>{JSON.stringify(sessions, null, 2)}</pre>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

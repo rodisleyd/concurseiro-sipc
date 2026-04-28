@@ -86,7 +86,7 @@ export function StudySessionProvider({ children, user }: { children: React.React
     // Now load local storage
     const saved = localStorage.getItem('current_study_session');
     let loadedIndex = 0;
-    let loadedCompleted = planCompletedBlocks;
+    let loadedCompleted: number[] = [];
     let loadedTime = loadedBlocks[0]?.duration * 60 || 30 * 60;
 
     if (saved) {
@@ -94,9 +94,7 @@ export function StudySessionProvider({ children, user }: { children: React.React
         const { index, completed, time } = JSON.parse(saved);
         if (index < loadedBlocks.length) {
           loadedIndex = index;
-          // merge completed
-          const merged = new Set([...completed, ...planCompletedBlocks]);
-          loadedCompleted = Array.from(merged).filter((i: number) => i < loadedBlocks.length);
+          loadedCompleted = completed.filter((i: number) => i < loadedBlocks.length);
           loadedTime = time;
         } else {
           localStorage.removeItem('current_study_session');
@@ -206,14 +204,27 @@ export function StudySessionProvider({ children, user }: { children: React.React
   };
 
   const saveSession = async (block: Block) => {
-    if (!user) return;
-    await studyService.addSession(user.uid, {
-      subject: block.subject,
-      durationMinutes: block.duration,
-      performance: Math.floor(Math.random() * 21) + 80, // Random entre 80 e 100 para dar realismo
-      completed: true
-    });
-    showToast('Bloco concluído e salvo!', 'success');
+    if (!user) {
+      showToast('ERRO: Usuário não autenticado no saveSession', 'error');
+      return;
+    }
+    if (!block || !block.subject) {
+      showToast('ERRO: Bloco inválido no saveSession', 'error');
+      return;
+    }
+    
+    showToast(`Salvando bloco: ${block.subject}...`, 'info');
+    try {
+      await studyService.addSession(user.uid, {
+        subject: block.subject,
+        durationMinutes: block.duration,
+        performance: Math.floor(Math.random() * 21) + 80, // Random entre 80 e 100 para dar realismo
+        completed: true
+      });
+      showToast(`Bloco ${block.subject} salvo!`, 'success');
+    } catch (e) {
+      showToast(`Erro ao salvar: ${String(e)}`, 'error');
+    }
   };
 
   return (

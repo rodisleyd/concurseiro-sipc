@@ -59,6 +59,7 @@ function handleFirestoreError(error: unknown, operationType: OperationType, path
     path
   }
   console.error('Firestore Error: ', JSON.stringify(errInfo));
+  alert('Erro no banco de dados: ' + (error instanceof Error ? error.message : String(error)));
   throw new Error(JSON.stringify(errInfo));
 }
 
