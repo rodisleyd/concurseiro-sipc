@@ -151,11 +151,6 @@ export default function Dashboard({ user }: { user: FirebaseUser }) {
         />
       </div>
 
-      <div className="bg-red-50 p-4 rounded-xl text-xs overflow-auto">
-        <p className="font-bold text-red-800">DEBUG SESSIONS (se estiver vazio, Firebase não gravou):</p>
-        <pre>{JSON.stringify(sessions, null, 2)}</pre>
-      </div>
-
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Weekly Progress */}
         <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100">

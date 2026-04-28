@@ -204,16 +204,8 @@ export function StudySessionProvider({ children, user }: { children: React.React
   };
 
   const saveSession = async (block: Block) => {
-    if (!user) {
-      showToast('ERRO: Usuário não autenticado no saveSession', 'error');
-      return;
-    }
-    if (!block || !block.subject) {
-      showToast('ERRO: Bloco inválido no saveSession', 'error');
-      return;
-    }
+    if (!user) return;
     
-    showToast(`Salvando bloco: ${block.subject}...`, 'info');
     try {
       await studyService.addSession(user.uid, {
         subject: block.subject,
@@ -221,9 +213,9 @@ export function StudySessionProvider({ children, user }: { children: React.React
         performance: Math.floor(Math.random() * 21) + 80, // Random entre 80 e 100 para dar realismo
         completed: true
       });
-      showToast(`Bloco ${block.subject} salvo!`, 'success');
+      showToast(`Bloco concluído e salvo!`, 'success');
     } catch (e) {
-      showToast(`Erro ao salvar: ${String(e)}`, 'error');
+      console.error("Erro ao salvar sessão:", e);
     }
   };
 
