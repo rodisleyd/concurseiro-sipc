@@ -79,9 +79,6 @@ export default function StudyCycle({ user }: { user: FirebaseUser }) {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const currentCycleIndex = Math.floor(activeBlockIndex / 3);
-  const displayBlocks = blocks.slice(currentCycleIndex * 3, currentCycleIndex * 3 + 3);
-
   return (
     <div className="max-w-5xl mx-auto space-y-8 pb-10">
       <header className="text-center">
@@ -91,21 +88,20 @@ export default function StudyCycle({ user }: { user: FirebaseUser }) {
 
       {/* Blocks Indicator */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {displayBlocks.map((block, displayIndex) => {
-          const actualIndex = currentCycleIndex * 3 + displayIndex;
+        {blocks.map((block, index) => {
           return (
             <div 
-              key={`${block.id}-${actualIndex}`}
-              onClick={() => jumpToBlock(actualIndex)}
+              key={`${block.id}-${index}`}
+              onClick={() => jumpToBlock(index)}
               className={`p-5 rounded-2xl border-2 transition-all relative overflow-hidden cursor-pointer hover:scale-[1.02] active:scale-95 ${
-                activeBlockIndex === actualIndex 
+                activeBlockIndex === index 
                   ? 'border-indigo-600 bg-indigo-50 shadow-md' 
-                  : completedBlocks.includes(actualIndex)
+                  : completedBlocks.includes(index)
                     ? 'border-emerald-200 bg-emerald-50'
                     : 'border-slate-100 bg-white opacity-60'
               }`}
             >
-              {activeBlockIndex === actualIndex && (
+              {activeBlockIndex === index && (
                  <motion.div 
                    layoutId="active-indicator"
                    className="absolute inset-0 bg-indigo-100/50"
@@ -113,17 +109,17 @@ export default function StudyCycle({ user }: { user: FirebaseUser }) {
               )}
               <div className="relative z-10">
                 <div className="flex items-center justify-between mb-2">
-                  <span className={`text-xs font-bold uppercase tracking-wider ${activeBlockIndex === actualIndex ? 'text-indigo-600' : 'text-gray-400'}`}>
-                    Bloco {actualIndex + 1}
+                  <span className={`text-xs font-bold uppercase tracking-wider ${activeBlockIndex === index ? 'text-indigo-600' : 'text-gray-400'}`}>
+                    Bloco {index + 1}
                   </span>
-                  {completedBlocks.includes(actualIndex) && <CheckCircle2 className="w-5 h-5 text-emerald-600" />}
+                  {completedBlocks.includes(index) && <CheckCircle2 className="w-5 h-5 text-emerald-600" />}
                 </div>
                 <input 
                   type="text"
                   value={block.subject}
-                  onChange={(e) => updateBlockSubject(actualIndex, e.target.value)}
+                  onChange={(e) => updateBlockSubject(index, e.target.value)}
                   onClick={(e) => e.stopPropagation()}
-                  className={`w-full bg-transparent border-none font-bold outline-none focus:ring-1 focus:ring-indigo-300 rounded px-1 -ml-1 ${activeBlockIndex === actualIndex ? 'text-indigo-900 text-lg' : 'text-gray-600'}`}
+                  className={`w-full bg-transparent border-none font-bold outline-none focus:ring-1 focus:ring-indigo-300 rounded px-1 -ml-1 ${activeBlockIndex === index ? 'text-indigo-900 text-lg' : 'text-gray-600'}`}
                 />
                 <p className="text-xs text-gray-500 mt-1">{block.duration} min</p>
               </div>
