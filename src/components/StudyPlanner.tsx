@@ -42,7 +42,10 @@ export default function StudyPlanner({ user }: { user: FirebaseUser }) {
       if (data?.subjects) setSubjects(data.subjects);
       if (data?.totalStudyHours) setTotalHours(data.totalStudyHours);
       if (data?.dailyHoursGoal) setDailyGoal(data.dailyHoursGoal);
-      if (data?.plan) setPlan(data.plan);
+      if (data?.plan) {
+        const fixedPlan = data.plan.map((item: any) => ({ ...item, durationMinutes: 30 }));
+        setPlan(fixedPlan);
+      }
       
       // Dá tempo de todos os hooks de estado se estabilizarem antes de ativar o monitoramento
       setTimeout(() => {

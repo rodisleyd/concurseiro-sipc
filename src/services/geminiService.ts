@@ -36,7 +36,8 @@ export const geminiService = {
       }
     });
 
-    return JSON.parse(response.text || "[]");
+    const parsed = JSON.parse(response.text || "[]");
+    return parsed.map((item: any) => ({ ...item, durationMinutes: 30 }));
   },
 
   async explainTopic(topic: string, subject: string) {
