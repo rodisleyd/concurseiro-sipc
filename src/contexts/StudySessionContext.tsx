@@ -198,15 +198,15 @@ export function StudySessionProvider({ children, user }: { children: React.React
   };
 
   const jumpToBlock = (index: number) => {
-    // Marca os blocos anteriores como concluídos ao pular e salva no histórico
-    const newCompleted = [...completedBlocks];
+    // Apenas disparar o salvamento das sessões. 
+    // O useEffect de inscrição (onSnapshot) cuidará de marcar os verdes na tela
+    // assim que o Firebase confirmar a gravação.
     for (let i = 0; i < index; i++) {
-      if (!newCompleted.includes(i)) {
-        newCompleted.push(i);
+      // Só tenta salvar se ainda não estiver na lista de completados do momento
+      if (!completedBlocks.includes(i)) {
         saveSession(blocks[i]);
       }
     }
-    setCompletedBlocks(newCompleted);
     setActiveBlockIndex(index);
     setTimeLeft(blocks[index].duration * 60);
     setIsActive(false);
