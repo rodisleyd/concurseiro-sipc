@@ -37,57 +37,81 @@ export function StudySessionProvider({ children, user }: { children: React.React
   const [timeLeft, setTimeLeft] = useState(30 * 60);
   const [isActive, setIsActive] = useState(false);
   const [completedBlocks, setCompletedBlocks] = useState<number[]>([]);
-
-  // Carregar progresso salvo
-  useEffect(() => {
-    const saved = localStorage.getItem('current_study_session');
-    if (saved) {
-      try {
-        const { index, completed, time, savedBlocks } = JSON.parse(saved);
-        // Só carrega se o índice for válido para o novo número de blocos
-        if (index < blocks.length) {
-          setActiveBlockIndex(index);
-          setCompletedBlocks(completed.filter((i: number) => i < blocks.length));
-          setTimeLeft(time);
-          if (savedBlocks) setBlocks(savedBlocks);
-        } else {
-          localStorage.removeItem('current_study_session');
-        }
-      } catch (e) {
-        console.error("Erro ao carregar sessão salva", e);
-      }
-    }
-  }, [blocks.length]);
+  const [isDataLoaded, setIsDataLoaded] = useState(false);
 
   // Salvar progresso automaticamente
   useEffect(() => {
+    if (!isDataLoaded) return;
     const data = {
       index: activeBlockIndex,
       completed: completedBlocks,
-      time: timeLeft,
-      savedBlocks: blocks
+      time: timeLeft
     };
     localStorage.setItem('current_study_session', JSON.stringify(data));
-  }, [activeBlockIndex, completedBlocks, timeLeft, blocks]);
+  }, [activeBlockIndex, completedBlocks, timeLeft, isDataLoaded]);
 
   useEffect(() => {
     if (!user) return;
     const loadSubjects = async () => {
       const data = await studyService.getUser(user.uid);
-      if (data?.subjects && data.subjects.length > 0) {
-        // Sort by weight desc
+      let loadedBlocks = [
+        { id: 1, subject: 'Matéria 1', duration: 30 },
+        { id: 2, subject: 'Matéria 2', duration: 30 },
+        { id: 3, subject: 'Matéria 3', duration: 30 },
+      ];
+      let planCompletedBlocks: number[] = [];
+
+      if (data?.plan && data.plan.length > 0) {
+        loadedBlocks = data.plan.map((item: any, idx: number) => ({
+          id: idx + 1,
+          subject: item.subject,
+          duration: item.durationMinutes || 30
+        }));
+        
+        planCompletedBlocks = data.plan
+          .map((item: any, idx: number) => item.completed ? idx : -1)
+          .filter((idx: number) => idx !== -1);
+          
+      } else if (data?.subjects && data.subjects.length > 0) {
         const sorted = [...data.subjects].sort((a, b) => b.weight - a.weight);
-        const newBlocks = [
+        loadedBlocks = [
           { id: 1, subject: sorted[0]?.name || 'Matéria 1', duration: 30 },
           { id: 2, subject: sorted[1]?.name || 'Matéria 2', duration: 30 },
           { id: 3, subject: sorted[2]?.name || 'Matéria 3', duration: 30 },
         ];
-        setBlocks(newBlocks);
-        // Atualiza iniciar se a sessão estiver inativa/zerada
-        if (!isActive && completedBlocks.length === 0) {
-           setTimeLeft(newBlocks[0].duration * 60);
+      }
+
+      setBlocks(loadedBlocks);
+
+      // Now load local storage
+      const saved = localStorage.getItem('current_study_session');
+      let loadedIndex = 0;
+      let loadedCompleted = planCompletedBlocks;
+      let loadedTime = loadedBlocks[0]?.duration * 60 || 30 * 60;
+      let restoredFromStorage = false;
+
+      if (saved) {
+        try {
+          const { index, completed, time } = JSON.parse(saved);
+          if (index < loadedBlocks.length) {
+            loadedIndex = index;
+            // merge completed
+            const merged = new Set([...completed, ...planCompletedBlocks]);
+            loadedCompleted = Array.from(merged).filter((i: number) => i < loadedBlocks.length);
+            loadedTime = time;
+            restoredFromStorage = true;
+          } else {
+            localStorage.removeItem('current_study_session');
+          }
+        } catch (e) {
+          console.error("Erro ao carregar sessão salva", e);
         }
       }
+
+      setActiveBlockIndex(loadedIndex);
+      setCompletedBlocks(loadedCompleted);
+      setTimeLeft(loadedTime);
+      setIsDataLoaded(true);
     };
     loadSubjects();
   }, [user]);
@@ -115,7 +139,7 @@ export function StudySessionProvider({ children, user }: { children: React.React
 
   const playFinishAlert = () => {
     window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance("Parabéns. Ciclo alternado de duas horas concluído com sucesso. Bom descanso.");
+    const utterance = new SpeechSynthesisUtterance("Parabéns. O ciclo de estudos foi concluído com sucesso. Bom descanso.");
     utterance.lang = 'pt-BR';
     utterance.rate = 1.0;
     window.speechSynthesis.speak(utterance);
@@ -166,7 +190,7 @@ export function StudySessionProvider({ children, user }: { children: React.React
 
   const resetSession = () => {
     setActiveBlockIndex(0);
-    setTimeLeft(blocks[0].duration * 60);
+    setTimeLeft(blocks[0]?.duration * 60 || 30 * 60);
     setIsActive(false);
     setCompletedBlocks([]);
   };
@@ -174,14 +198,15 @@ export function StudySessionProvider({ children, user }: { children: React.React
   const saveSession = async () => {
     if (!user) return;
     playFinishAlert();
+    const totalDuration = blocks.reduce((acc, b) => acc + b.duration, 0);
     await studyService.addSession(user.uid, {
       subject: 'Ciclo Completo',
-      durationMinutes: 90, // 3 x 30m
+      durationMinutes: totalDuration,
       performance: 85,
       completed: true,
       blocks: blocks.map(b => b.subject)
     });
-    showToast('Sessão de 1.5h concluída e salva com sucesso!', 'success');
+    showToast('Sessão concluída e salva com sucesso!', 'success');
     resetSession();
   };
 

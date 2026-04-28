@@ -83,8 +83,8 @@ export default function StudyCycle({ user }: { user: FirebaseUser }) {
   return (
     <div className="max-w-5xl mx-auto space-y-8 pb-10">
       <header className="text-center">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Ciclo de Estudo Alternado (1.5h)</h1>
-        <p className="text-gray-500">Metodologia P.E.A.A.F - Foque no aprendizado alternando matérias a cada 30 minutos.</p>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Ciclo de Estudos Alternado</h1>
+        <p className="text-gray-500">Metodologia P.E.A.A.F - Foque no aprendizado alternando matérias a cada bloco.</p>
       </header>
 
       {/* Blocks Indicator */}
