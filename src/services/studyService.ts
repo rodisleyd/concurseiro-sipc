@@ -117,6 +117,15 @@ export const studyService = {
     }
   },
 
+  async deleteSession(userId: string, sessionId: string) {
+    const path = `users/${userId}/sessions/${sessionId}`;
+    try {
+      await deleteDoc(doc(db, 'users', userId, 'sessions', sessionId));
+    } catch (error) {
+      handleFirestoreError(error, OperationType.DELETE, path);
+    }
+  },
+
   subscribeToSessions(userId: string, callback: (sessions: any[]) => void) {
     const path = `users/${userId}/sessions`;
     const q = query(collection(db, 'users', userId, 'sessions'));

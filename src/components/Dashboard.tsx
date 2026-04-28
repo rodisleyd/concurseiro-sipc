@@ -18,7 +18,8 @@ import {
   Clock, 
   Target, 
   TrendingUp,
-  AlertCircle
+  AlertCircle,
+  Trash2
 } from 'lucide-react';
 
 export default function Dashboard({ user }: { user: FirebaseUser }) {
@@ -79,11 +80,31 @@ export default function Dashboard({ user }: { user: FirebaseUser }) {
     score: (s.total / s.count).toFixed(0)
   }));
 
+  const handleResetStats = async () => {
+    if (window.confirm("Isso apagará todo o histórico de horas estudadas e reiniciará o ciclo. Deseja continuar? (Útil para limpar dados de teste)")) {
+      for (const s of sessions) {
+        await studyService.deleteSession(user.uid, s.id);
+      }
+      localStorage.removeItem('current_study_session');
+      window.location.reload();
+    }
+  };
+
   return (
     <div className="space-y-8">
-      <header>
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Bem-vindo, {user.displayName?.split(' ')[0]}!</h1>
-        <p className="text-gray-500">Aqui está o seu progresso de estudos atual.</p>
+      <header className="flex justify-between items-end">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Bem-vindo, {user.displayName?.split(' ')[0]}!</h1>
+          <p className="text-gray-500">Aqui está o seu progresso de estudos atual.</p>
+        </div>
+        <button 
+          onClick={handleResetStats}
+          className="flex items-center gap-2 text-red-500 bg-red-50 hover:bg-red-100 px-4 py-2 rounded-xl text-sm font-bold transition-colors"
+          title="Zerar Estatísticas (Modo Dev)"
+        >
+          <Trash2 className="w-4 h-4" />
+          Zerar Testes
+        </button>
       </header>
 
       {/* Stats Grid */}
