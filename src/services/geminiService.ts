@@ -10,10 +10,9 @@ export const geminiService = {
     Matérias e Pesos: ${JSON.stringify(subjects)}.
     
     REGRAS CRÍTICAS:
-    1. Divida o tempo proporcionalmente aos pesos. CADA bloco de estudo DEVE ter EXATAMENTE 30 minutos. Não crie blocos com durações diferentes.
-    2. Intercale as matérias (não coloque a mesma matéria em 3 blocos seguidos).
-    3. Gere os primeiros 15 a 20 blocos dessa jornada para começar.
-    4. O campo durationMinutes deve ser um número realista para uma única sessão de estudo.
+    1. O campo "durationMinutes" DEVE SER EXATAMENTE 30 para TODOS os blocos gerados, sem exceção.
+    2. Intercale as matérias respeitando a proporção dos pesos (matérias com mais peso aparecem mais vezes).
+    3. Gere de 15 a 20 blocos para começar a trilha.
     
     Retorne um array JSON de objetos com: subject, durationMinutes e focusArea (um tópico específico para estudar nesse bloco).`;
 
