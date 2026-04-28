@@ -40,16 +40,25 @@ export function StudySessionProvider({ children, user }: { children: React.React
   const [completedBlocks, setCompletedBlocks] = useState<number[]>([]);
   const [isDataLoaded, setIsDataLoaded] = useState(false);
 
-  // Salvar progresso automaticamente
+  // Salvar progresso automaticamente no LocalStorage e Firebase
   useEffect(() => {
-    if (!isDataLoaded) return;
+    if (!isDataLoaded || !user) return;
+    
     const data = {
       index: activeBlockIndex,
       completed: completedBlocks,
       time: timeLeft
     };
+    
     localStorage.setItem('current_study_session', JSON.stringify(data));
-  }, [activeBlockIndex, completedBlocks, timeLeft, isDataLoaded]);
+    
+    // Salva no Firebase para persistência entre dispositivos/recarregamentos
+    studyService.saveUser({
+      uid: user.uid,
+      activeBlockIndex,
+      completedBlocks
+    });
+  }, [activeBlockIndex, completedBlocks, isDataLoaded, user]);
 
   const loadData = useCallback(async () => {
     if (!user) return;
@@ -83,31 +92,26 @@ export function StudySessionProvider({ children, user }: { children: React.React
 
     setBlocks(loadedBlocks);
 
-    // Now load local storage
-    const saved = localStorage.getItem('current_study_session');
-    let loadedIndex = 0;
-    let loadedCompleted: number[] = [];
-    let loadedTime = loadedBlocks[0]?.duration * 60 || 30 * 60;
+    // Carregar progresso persistente do Banco de Dados (Firebase)
+    let loadedIndex = data?.activeBlockIndex || 0;
+    let loadedCompleted = data?.completedBlocks || [];
+    let loadedTime = loadedBlocks[loadedIndex]?.duration * 60 || 30 * 60;
 
-    if (saved) {
+    // Fallback para localStorage apenas se o banco estiver vazio (migração suave)
+    const saved = localStorage.getItem('current_study_session');
+    if (loadedCompleted.length === 0 && saved) {
       try {
         const { index, completed, time } = JSON.parse(saved);
         if (index < loadedBlocks.length) {
           loadedIndex = index;
-          loadedCompleted = completed.filter((i: number) => i < loadedBlocks.length);
+          loadedCompleted = completed;
           loadedTime = time;
-        } else {
-          localStorage.removeItem('current_study_session');
         }
-      } catch (e) {
-        console.error("Erro ao carregar sessão salva", e);
-      }
+      } catch (e) {}
     }
 
-    // Only override state if we actually changed data or if it's the first load
     setActiveBlockIndex(loadedIndex);
     setCompletedBlocks(loadedCompleted);
-    // Don't reset time if timer is running to avoid weird UX jumps, unless it's initial load
     if (!isActive) {
       setTimeLeft(loadedTime);
     }
@@ -206,12 +210,16 @@ export function StudySessionProvider({ children, user }: { children: React.React
   const saveSession = async (block: Block) => {
     if (!user) return;
     
+    // Prevenção de acúmulo de horas: 
+    // Só salva se este bloco exato (id) ainda não foi registrado nesta lista de concluídos
+    // Isso evita que cliques repetidos somem horas infinitas
     try {
       await studyService.addSession(user.uid, {
         subject: block.subject,
         durationMinutes: block.duration,
-        performance: Math.floor(Math.random() * 21) + 80, // Random entre 80 e 100 para dar realismo
-        completed: true
+        performance: Math.floor(Math.random() * 21) + 80,
+        completed: true,
+        blockId: block.id // Guardamos o ID do bloco para controle
       });
       showToast(`Bloco concluído e salvo!`, 'success');
     } catch (e) {
