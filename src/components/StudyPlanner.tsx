@@ -103,6 +103,14 @@ export default function StudyPlanner({ user }: { user: FirebaseUser }) {
     try {
       const generatedPlan = await geminiService.generateStudyPlan(subjects, totalHours);
       setPlan(generatedPlan);
+      await studyService.saveUser({
+        uid: user.uid,
+        subjects: subjects.map(s => ({ ...s, weight: Number(s.weight) || 0 })),
+        totalStudyHours: Number(totalHours) || 0,
+        dailyHoursGoal: Number(dailyGoal) || 0,
+        plan: generatedPlan
+      });
+      showToast('Cronograma gerado e salvo!', 'success');
     } catch (error) {
       console.error('Failed to generate plan', error);
     } finally {

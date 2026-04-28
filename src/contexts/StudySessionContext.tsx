@@ -74,11 +74,11 @@ export function StudySessionProvider({ children, user }: { children: React.React
           
       } else if (data?.subjects && data.subjects.length > 0) {
         const sorted = [...data.subjects].sort((a, b) => b.weight - a.weight);
-        loadedBlocks = [
-          { id: 1, subject: sorted[0]?.name || 'Matéria 1', duration: 30 },
-          { id: 2, subject: sorted[1]?.name || 'Matéria 2', duration: 30 },
-          { id: 3, subject: sorted[2]?.name || 'Matéria 3', duration: 30 },
-        ];
+        loadedBlocks = [];
+        for(let i=0; i<15; i++) {
+           const subj = sorted[i % sorted.length];
+           loadedBlocks.push({ id: i + 1, subject: subj?.name || `Matéria ${i+1}`, duration: 30 });
+        }
       }
 
       setBlocks(loadedBlocks);
