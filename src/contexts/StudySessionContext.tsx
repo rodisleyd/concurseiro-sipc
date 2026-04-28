@@ -174,11 +174,12 @@ export function StudySessionProvider({ children, user }: { children: React.React
   };
 
   const jumpToBlock = (index: number) => {
-    // Marca os blocos anteriores como concluídos ao pular
+    // Marca os blocos anteriores como concluídos ao pular e salva no histórico
     const newCompleted = [...completedBlocks];
     for (let i = 0; i < index; i++) {
       if (!newCompleted.includes(i)) {
         newCompleted.push(i);
+        saveSession(blocks[i]);
       }
     }
     setCompletedBlocks(newCompleted);
