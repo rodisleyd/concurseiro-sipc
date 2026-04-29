@@ -127,7 +127,7 @@ export default function Dashboard({ user }: { user: FirebaseUser }) {
           icon={Clock} 
           label="Total de Horas" 
           value={`${totalHours}h`} 
-          subValue="Meta: 540h"
+          subValue={`Meta: ${userData?.totalStudyHours || 0}h`}
           color="bg-blue-500"
         />
         <StatCard 
