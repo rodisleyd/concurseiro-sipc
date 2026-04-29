@@ -27,7 +27,6 @@ import {
 } from 'lucide-react';
 
 // Theme
-// Theme
 import { useTheme } from './contexts/ThemeContext';
 
 // Components
