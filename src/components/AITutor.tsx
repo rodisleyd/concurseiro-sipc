@@ -29,6 +29,7 @@ export default function AITutor({ user }: { user: FirebaseUser }) {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [playingIndex, setPlayingIndex] = useState<number | null>(null);
+  const [isAudioLoading, setIsAudioLoading] = useState(false);
   const [showQuickSearch, setShowQuickSearch] = useState(false);
   const [quickSearchInput, setQuickSearchInput] = useState('');
   const [quickSearchResponse, setQuickSearchResponse] = useState('');
@@ -142,6 +143,7 @@ export default function AITutor({ user }: { user: FirebaseUser }) {
     }
     
     setPlayingIndex(index);
+    setIsAudioLoading(true);
 
     try {
       // Limpa markdown para o TTS
@@ -163,6 +165,7 @@ export default function AITutor({ user }: { user: FirebaseUser }) {
         
         const audio = new Audio(url);
         audioRef.current = audio;
+        setIsAudioLoading(false);
         
         audio.onended = () => {
           setPlayingIndex(null);
@@ -171,6 +174,7 @@ export default function AITutor({ user }: { user: FirebaseUser }) {
         };
 
         audio.onerror = () => {
+          setIsAudioLoading(false);
           URL.revokeObjectURL(url);
           const utterance = new SpeechSynthesisUtterance(cleanText);
           utterance.lang = 'pt-BR';
@@ -180,12 +184,14 @@ export default function AITutor({ user }: { user: FirebaseUser }) {
 
         await audio.play();
       } else {
+        setIsAudioLoading(false);
         const utterance = new SpeechSynthesisUtterance(cleanText);
         utterance.lang = 'pt-BR';
         utterance.onend = () => setPlayingIndex(null);
         window.speechSynthesis.speak(utterance);
       }
     } catch (error) {
+      setIsAudioLoading(false);
       const utterance = new SpeechSynthesisUtterance(text.replace(/[*#_`~]/g, ''));
       utterance.lang = 'pt-BR';
       utterance.onend = () => setPlayingIndex(null);
@@ -268,12 +274,19 @@ export default function AITutor({ user }: { user: FirebaseUser }) {
                 {msg.role === 'assistant' && (
                   <button 
                     onClick={() => playAudio(msg.content, i)}
-                    className={`absolute -right-10 top-2 p-1.5 rounded-lg transition-opacity ${
+                    className={`absolute -right-12 top-2 p-1.5 rounded-lg transition-opacity flex items-center gap-2 ${
                       playingIndex === i ? 'opacity-100 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400' : 'opacity-0 group-hover:opacity-100 bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-gray-500 hover:text-indigo-600 dark:hover:text-indigo-400'
                     }`}
                     title="Ouvir explicação"
                   >
-                    <Headphones className="w-4 h-4" />
+                    {playingIndex === i && isAudioLoading ? (
+                      <div className="flex items-center gap-1">
+                        <RefreshCw className="w-3 h-3 animate-spin" />
+                        <span className="text-[8px] font-bold">Lendo...</span>
+                      </div>
+                    ) : (
+                      playingIndex === i ? <X className="w-4 h-4" /> : <Headphones className="w-4 h-4" />
+                    )}
                   </button>
                 )}
               </div>

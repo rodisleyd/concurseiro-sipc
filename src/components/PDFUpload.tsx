@@ -34,6 +34,7 @@ export default function PDFUpload({ user, chunk, onGoToGalpao }: { user: Firebas
   // Audio State
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [activeAudioText, setActiveAudioText] = useState('');
+  const [isAudioLoading, setIsAudioLoading] = useState(false);
   const audioRef = React.useRef<HTMLAudioElement | null>(null);
 
   // Ao receber um pedaço do Galpão, vamos checar se ele já foi mastigado antes
@@ -122,6 +123,7 @@ export default function PDFUpload({ user, chunk, onGoToGalpao }: { user: Firebas
     
     setIsPlayingAudio(true);
     setActiveAudioText(text);
+    setIsAudioLoading(true);
 
     try {
       // Filtro de Markdown para a voz não ler os caracteres
@@ -143,6 +145,7 @@ export default function PDFUpload({ user, chunk, onGoToGalpao }: { user: Firebas
         
         const audio = new Audio(url);
         audioRef.current = audio;
+        setIsAudioLoading(false);
         
         audio.onended = () => {
           setIsPlayingAudio(false);
@@ -151,6 +154,7 @@ export default function PDFUpload({ user, chunk, onGoToGalpao }: { user: Firebas
         };
 
         audio.onerror = () => {
+          setIsAudioLoading(false);
           URL.revokeObjectURL(url);
           const utterance = new SpeechSynthesisUtterance(cleanText);
           utterance.lang = 'pt-BR';
@@ -160,12 +164,14 @@ export default function PDFUpload({ user, chunk, onGoToGalpao }: { user: Firebas
 
         await audio.play();
       } else {
+        setIsAudioLoading(false);
         const utterance = new SpeechSynthesisUtterance(cleanText);
         utterance.lang = 'pt-BR';
         utterance.onend = () => setIsPlayingAudio(false);
         window.speechSynthesis.speak(utterance);
       }
     } catch (error) {
+      setIsAudioLoading(false);
       const utterance = new SpeechSynthesisUtterance(text.replace(/[*#_`~]/g, ''));
       utterance.lang = 'pt-BR';
       utterance.onend = () => setIsPlayingAudio(false);
@@ -326,14 +332,23 @@ export default function PDFUpload({ user, chunk, onGoToGalpao }: { user: Firebas
                       </h3>
                       <button 
                         onClick={() => playAudio(result.summary)}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${
+                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all min-w-[140px] justify-center ${
                           isPlayingAudio && activeAudioText === result.summary 
                             ? 'bg-red-100 text-red-600 hover:bg-red-200' 
                             : 'bg-indigo-100 text-indigo-600 hover:bg-indigo-200'
                         }`}
                       >
-                        <Headphones className="w-4 h-4" />
-                        {isPlayingAudio && activeAudioText === result.summary ? 'Pausar Áudio' : 'Ouvir Resumo'}
+                        {isPlayingAudio && activeAudioText === result.summary && isAudioLoading ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            <span>Lendo resumo...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Headphones className="w-4 h-4" />
+                            {isPlayingAudio && activeAudioText === result.summary ? 'Pausar Áudio' : 'Ouvir Resumo'}
+                          </>
+                        )}
                       </button>
                     </div>
                     <p className="text-gray-600 dark:text-gray-400 leading-relaxed text-sm bg-slate-50 dark:bg-slate-800/50 p-6 rounded-2xl border border-slate-100 dark:border-slate-800">
@@ -463,10 +478,19 @@ export default function PDFUpload({ user, chunk, onGoToGalpao }: { user: Firebas
                                 </span>
                                 <button 
                                   onClick={() => playAudio(q.explanation)}
-                                  className="text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 flex items-center gap-1 text-xs font-bold transition-colors"
+                                  className="text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 flex items-center gap-2 text-xs font-bold transition-colors min-w-[120px] justify-end"
                                 >
-                                  <Headphones className="w-4 h-4" /> 
-                                  {isPlayingAudio && activeAudioText === q.explanation ? 'Pausar' : 'Ouvir Explicação'}
+                                  {isPlayingAudio && activeAudioText === q.explanation && isAudioLoading ? (
+                                    <>
+                                      <Loader2 className="w-3 h-3 animate-spin" />
+                                      <span>Preparando...</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Headphones className="w-4 h-4" /> 
+                                      {isPlayingAudio && activeAudioText === q.explanation ? 'Pausar' : 'Ouvir Explicação'}
+                                    </>
+                                  )}
                                 </button>
                               </div>
                               <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed">
