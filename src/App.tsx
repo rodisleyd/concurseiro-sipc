@@ -21,8 +21,14 @@ import {
   ChevronRight,
   BrainCircuit,
   GraduationCap,
-  Warehouse
+  Warehouse,
+  Sun,
+  Moon
 } from 'lucide-react';
+
+// Theme
+// Theme
+import { useTheme } from './contexts/ThemeContext';
 
 // Components
 import Dashboard from './components/Dashboard';
@@ -37,6 +43,7 @@ import { StudySessionProvider } from './contexts/StudySessionContext';
 import MiniTimer from './components/MiniTimer';
 
 export default function App() {
+  const { theme, toggleTheme } = useTheme();
   const [user, setUser] = useState<FirebaseUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -68,7 +75,7 @@ export default function App() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950">
         <motion.div 
           animate={{ rotate: 360 }}
           transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
@@ -84,13 +91,13 @@ export default function App() {
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="max-w-md w-full bg-white rounded-3xl shadow-2xl p-10 text-center"
+          className="max-w-md w-full bg-white dark:bg-slate-900 rounded-3xl shadow-2xl p-10 text-center"
         >
-          <div className="w-20 h-20 bg-indigo-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
-            <GraduationCap className="w-12 h-12 text-indigo-600" />
+          <div className="w-20 h-20 bg-indigo-100 dark:bg-indigo-900/50 rounded-2xl flex items-center justify-center mx-auto mb-6">
+            <GraduationCap className="w-12 h-12 text-indigo-600 dark:text-indigo-400" />
           </div>
-          <h1 className="text-4xl font-bold text-gray-900 mb-4 tracking-tight">Concurseiro</h1>
-          <p className="text-gray-600 mb-8 text-lg">Seu tutor inteligente para aprovação em concursos públicos.</p>
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4 tracking-tight">Concurseiro</h1>
+          <p className="text-gray-600 dark:text-gray-400 mb-8 text-lg">Seu tutor inteligente para aprovação em concursos públicos.</p>
           <button
             onClick={handleLogin}
             className="w-full py-4 px-6 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-2xl transition-all flex items-center justify-center gap-3 shadow-lg shadow-indigo-200"
@@ -121,15 +128,23 @@ export default function App() {
     <ErrorBoundary>
       <ToastProvider>
         <StudySessionProvider user={user}>
-        <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row">
-          {/* ... existing sidebar and main code ... */}
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col md:flex-row transition-colors duration-300">
           {/* Sidebar */}
-          <aside className="w-full md:w-72 bg-white border-r border-slate-200 flex flex-col print:hidden">
-            <div className="p-8 flex items-center gap-3">
-              <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center">
-                <GraduationCap className="w-6 h-6 text-white" />
+          <aside className="w-full md:w-72 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col print:hidden">
+            <div className="p-8 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center">
+                  <GraduationCap className="w-6 h-6 text-white" />
+                </div>
+                <span className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">Concurseiro</span>
               </div>
-              <span className="text-2xl font-bold text-gray-900 tracking-tight">Concurseiro</span>
+              <button 
+                onClick={toggleTheme}
+                className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                title={theme === 'light' ? 'Modo Escuro' : 'Modo Claro'}
+              >
+                {theme === 'light' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
+              </button>
             </div>
 
             <nav className="flex-1 px-4 space-y-2">
@@ -139,28 +154,28 @@ export default function App() {
                   onClick={() => setActiveTab(tab.id)}
                   className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all ${
                     activeTab === tab.id 
-                      ? 'bg-indigo-50 text-indigo-600 font-semibold' 
-                      : 'text-gray-500 hover:bg-slate-50 hover:text-gray-900'
+                      ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 font-semibold' 
+                      : 'text-gray-500 dark:text-gray-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-gray-900 dark:hover:text-white'
                   }`}
                 >
-                  <tab.icon className={`w-5 h-5 ${activeTab === tab.id ? 'text-indigo-600' : 'text-gray-400'}`} />
+                  <tab.icon className={`w-5 h-5 ${activeTab === tab.id ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-400 dark:text-gray-500'}`} />
                   {tab.label}
                 </button>
               ))}
             </nav>
 
             <MiniTimer onNavigateToCycle={() => setActiveTab('cycle')} />
-            <div className="p-6 border-t border-slate-100">
+            <div className="p-6 border-t border-slate-100 dark:border-slate-800">
               <div className="flex items-center gap-3 mb-4">
-                <img src={user.photoURL || ''} className="w-10 h-10 rounded-full border-2 border-indigo-100" alt="Avatar" referrerPolicy="no-referrer" />
+                <img src={user.photoURL || ''} className="w-10 h-10 rounded-full border-2 border-indigo-100 dark:border-indigo-900" alt="Avatar" referrerPolicy="no-referrer" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-gray-900 truncate">{user.displayName}</p>
-                  <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                  <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{user.displayName}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user.email}</p>
                 </div>
               </div>
               <button 
                 onClick={() => signOut(auth)}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 rounded-xl transition-colors"
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors"
               >
                 <LogOut className="w-4 h-4" />
                 Sair

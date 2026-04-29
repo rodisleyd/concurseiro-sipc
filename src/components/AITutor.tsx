@@ -78,17 +78,17 @@ export default function AITutor({ user }: { user: FirebaseUser }) {
   };
 
   return (
-    <div className="h-[calc(100vh-120px)] flex flex-col bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
-      <header className="p-6 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
+    <div className="h-[calc(100vh-120px)] flex flex-col bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden">
+      <header className="p-6 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center">
             <Bot className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h2 className="font-bold text-gray-900">Professor IA</h2>
+            <h2 className="font-bold text-gray-900 dark:text-white">Professor IA</h2>
             <div className="flex items-center gap-1.5">
               <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
-              <span className="text-xs text-gray-500 font-medium">Online e pronto para ajudar</span>
+              <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">Online e pronto para ajudar</span>
             </div>
           </div>
         </div>
@@ -107,14 +107,14 @@ export default function AITutor({ user }: { user: FirebaseUser }) {
           >
             <div className={`flex gap-3 max-w-[80%] ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
               <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
-                msg.role === 'user' ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-100 text-slate-600'
+                msg.role === 'user' ? 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
               }`}>
                 {msg.role === 'user' ? <UserIcon className="w-5 h-5" /> : <Bot className="w-5 h-5" />}
               </div>
               <div className={`p-4 rounded-2xl text-sm leading-relaxed relative group ${
                 msg.role === 'user' 
                   ? 'bg-indigo-600 text-white rounded-tr-none' 
-                  : 'bg-slate-50 text-gray-800 border border-slate-100 rounded-tl-none'
+                  : 'bg-slate-50 dark:bg-slate-800 text-gray-800 dark:text-gray-200 border border-slate-100 dark:border-slate-700 rounded-tl-none'
               }`}>
                 {msg.role === 'user' ? (
                   msg.content
@@ -122,14 +122,14 @@ export default function AITutor({ user }: { user: FirebaseUser }) {
                   <div className="markdown-content">
                     <ReactMarkdown
                       components={{
-                        h1: ({node, ...props}) => <h1 className="text-xl font-bold mt-4 mb-2 text-indigo-900" {...props} />,
-                        h2: ({node, ...props}) => <h2 className="text-lg font-bold mt-4 mb-2 text-indigo-800" {...props} />,
-                        h3: ({node, ...props}) => <h3 className="text-base font-bold mt-3 mb-2 text-indigo-700" {...props} />,
+                        h1: ({node, ...props}) => <h1 className="text-xl font-bold mt-4 mb-2 text-indigo-900 dark:text-indigo-300" {...props} />,
+                        h2: ({node, ...props}) => <h2 className="text-lg font-bold mt-4 mb-2 text-indigo-800 dark:text-indigo-400" {...props} />,
+                        h3: ({node, ...props}) => <h3 className="text-base font-bold mt-3 mb-2 text-indigo-700 dark:text-indigo-500" {...props} />,
                         p: ({node, ...props}) => <p className="mb-3 last:mb-0" {...props} />,
                         ul: ({node, ...props}) => <ul className="list-disc pl-5 mb-3 space-y-1" {...props} />,
                         ol: ({node, ...props}) => <ol className="list-decimal pl-5 mb-3 space-y-1" {...props} />,
                         li: ({node, ...props}) => <li className="" {...props} />,
-                        strong: ({node, ...props}) => <strong className="font-bold text-gray-900" {...props} />
+                        strong: ({node, ...props}) => <strong className="font-bold text-gray-900 dark:text-white" {...props} />
                       }}
                     >
                       {msg.content}
@@ -140,7 +140,7 @@ export default function AITutor({ user }: { user: FirebaseUser }) {
                   <button 
                     onClick={() => playAudio(msg.content, i)}
                     className={`absolute -right-10 top-2 p-1.5 rounded-lg transition-opacity ${
-                      playingIndex === i ? 'opacity-100 bg-indigo-100 text-indigo-600' : 'opacity-0 group-hover:opacity-100 bg-slate-100 text-slate-400 hover:text-indigo-600'
+                      playingIndex === i ? 'opacity-100 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400' : 'opacity-0 group-hover:opacity-100 bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-gray-500 hover:text-indigo-600 dark:hover:text-indigo-400'
                     }`}
                     title="Ouvir explicação"
                   >
@@ -154,13 +154,13 @@ export default function AITutor({ user }: { user: FirebaseUser }) {
         {isLoading && (
           <div className="flex justify-start">
             <div className="flex gap-3 max-w-[80%]">
-              <div className="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 flex items-center justify-center">
                 <Bot className="w-5 h-5" />
               </div>
-              <div className="bg-slate-50 p-4 rounded-2xl rounded-tl-none border border-slate-100 flex gap-1">
-                <motion.div animate={{ opacity: [0.3, 1, 0.3] }} transition={{ repeat: Infinity, duration: 1 }} className="w-1.5 h-1.5 bg-gray-400 rounded-full" />
-                <motion.div animate={{ opacity: [0.3, 1, 0.3] }} transition={{ repeat: Infinity, duration: 1, delay: 0.2 }} className="w-1.5 h-1.5 bg-gray-400 rounded-full" />
-                <motion.div animate={{ opacity: [0.3, 1, 0.3] }} transition={{ repeat: Infinity, duration: 1, delay: 0.4 }} className="w-1.5 h-1.5 bg-gray-400 rounded-full" />
+              <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-2xl rounded-tl-none border border-slate-100 dark:border-slate-700 flex gap-1">
+                <motion.div animate={{ opacity: [0.3, 1, 0.3] }} transition={{ repeat: Infinity, duration: 1 }} className="w-1.5 h-1.5 bg-gray-400 dark:bg-gray-500 rounded-full" />
+                <motion.div animate={{ opacity: [0.3, 1, 0.3] }} transition={{ repeat: Infinity, duration: 1, delay: 0.2 }} className="w-1.5 h-1.5 bg-gray-400 dark:bg-gray-500 rounded-full" />
+                <motion.div animate={{ opacity: [0.3, 1, 0.3] }} transition={{ repeat: Infinity, duration: 1, delay: 0.4 }} className="w-1.5 h-1.5 bg-gray-400 dark:bg-gray-500 rounded-full" />
               </div>
             </div>
           </div>
@@ -168,7 +168,7 @@ export default function AITutor({ user }: { user: FirebaseUser }) {
         <div ref={messagesEndRef} />
       </div>
 
-      <footer className="p-6 border-t border-slate-100">
+      <footer className="p-6 border-t border-slate-100 dark:border-slate-800">
         <div className="relative">
           <input
             type="text"
@@ -176,12 +176,12 @@ export default function AITutor({ user }: { user: FirebaseUser }) {
             onChange={(e) => setInput(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && handleSend()}
             placeholder="Tire sua dúvida sobre qualquer matéria..."
-            className="w-full pl-6 pr-16 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+            className="w-full pl-6 pr-16 py-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all text-gray-900 dark:text-white"
           />
           <button
             onClick={handleSend}
             disabled={!input.trim() || isLoading}
-            className="absolute right-2 top-2 p-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 disabled:bg-indigo-400 transition-all shadow-md shadow-indigo-100"
+            className="absolute right-2 top-2 p-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 disabled:bg-indigo-400 transition-all shadow-md shadow-indigo-100 dark:shadow-none"
           >
             <Send className="w-5 h-5" />
           </button>

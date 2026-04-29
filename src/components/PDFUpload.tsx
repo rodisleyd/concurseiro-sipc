@@ -132,10 +132,10 @@ export default function PDFUpload({ user, chunk, onGoToGalpao }: { user: Firebas
   const renderMindMapNode = (node: any, depth = 0) => {
     if (!node || node.label === undefined) return null;
     return (
-      <div key={node.label + depth} className={`pl-${depth > 0 ? '6' : '0'} border-l-2 border-slate-200 mt-2 ml-${depth > 0 ? '4' : '0'}`}>
+      <div key={node.label + depth} className={`pl-${depth > 0 ? '6' : '0'} border-l-2 border-slate-200 dark:border-slate-700 mt-2 ml-${depth > 0 ? '4' : '0'}`}>
         <div className="flex items-center gap-2 mb-2">
           <div className="w-2 h-2 rounded-full bg-indigo-500 shrink-0" />
-          <span className="font-bold text-gray-800 text-sm">{node.label}</span>
+          <span className="font-bold text-gray-800 dark:text-gray-200 text-sm">{node.label}</span>
         </div>
         {node.children && node.children.map((child: any, i: number) => renderMindMapNode(child, depth + 1))}
       </div>
@@ -144,12 +144,12 @@ export default function PDFUpload({ user, chunk, onGoToGalpao }: { user: Firebas
 
   if (!chunk) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] bg-white rounded-[32px] border-2 border-dashed border-slate-200 p-12 text-center">
-        <div className="w-20 h-20 bg-slate-50 rounded-3xl flex items-center justify-center mb-6">
-          <Archive className="w-10 h-10 text-slate-300" />
+      <div className="flex flex-col items-center justify-center min-h-[400px] bg-white dark:bg-slate-900 rounded-[32px] border-2 border-dashed border-slate-200 dark:border-slate-800 p-12 text-center">
+        <div className="w-20 h-20 bg-slate-50 dark:bg-slate-800 rounded-3xl flex items-center justify-center mb-6">
+          <Archive className="w-10 h-10 text-slate-300 dark:text-slate-600" />
         </div>
-        <h3 className="text-2xl font-bold text-gray-900 mb-3">Nenhum Tópico Selecionado</h3>
-        <p className="text-gray-500 max-w-sm mb-8">
+        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">Nenhum Tópico Selecionado</h3>
+        <p className="text-gray-500 dark:text-gray-400 max-w-sm mb-8">
           Vá para o Galpão, escolha um tema da sua apostila e clique em "Gerar Aula" para começar sua sessão de elite.
         </p>
         {onGoToGalpao ? (
@@ -172,14 +172,14 @@ export default function PDFUpload({ user, chunk, onGoToGalpao }: { user: Firebas
 
   if (isProcessing) {
     return (
-      <div className="bg-white rounded-[32px] shadow-sm border border-slate-100 p-16 text-center flex flex-col items-center justify-center min-h-[400px]">
+      <div className="bg-white dark:bg-slate-900 rounded-[32px] shadow-sm border border-slate-100 dark:border-slate-800 p-16 text-center flex flex-col items-center justify-center min-h-[400px]">
         <motion.div 
           animate={{ rotate: 360 }}
           transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
           className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full mb-6"
         />
-        <h3 className="text-2xl font-black text-gray-900 mb-2">Construindo sua Aula...</h3>
-        <p className="text-gray-500 max-w-sm">Nossa IA está lendo <strong>"{chunk.title}"</strong> para criar seus mapas e perguntas inéditas. Um momento!</p>
+        <h3 className="text-2xl font-black text-gray-900 dark:text-white mb-2">Construindo sua Aula...</h3>
+        <p className="text-gray-500 dark:text-gray-400 max-w-sm">Nossa IA está lendo <strong>"{chunk.title}"</strong> para criar seus mapas e perguntas inéditas. Um momento!</p>
       </div>
     );
   }
@@ -188,8 +188,8 @@ export default function PDFUpload({ user, chunk, onGoToGalpao }: { user: Firebas
     <div className="space-y-8 pb-10">
       <header className="flex items-start justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">{chunk.title}</h1>
-          <p className="text-gray-500 text-sm flex items-center gap-2">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">{chunk.title}</h1>
+          <p className="text-gray-500 dark:text-gray-400 text-sm flex items-center gap-2">
             Origem: <span className="font-semibold">{chunk.fileName}</span>
           </p>
         </div>
@@ -206,7 +206,7 @@ export default function PDFUpload({ user, chunk, onGoToGalpao }: { user: Firebas
             Finalizar e Salvar Aula
           </motion.button>
         ) : (
-          <div className="px-6 py-3 bg-emerald-50 text-emerald-600 border border-emerald-200 font-bold rounded-2xl flex items-center gap-2 text-sm">
+          <div className="px-6 py-3 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 font-bold rounded-2xl flex items-center gap-2 text-sm">
             <CheckCircle2 className="w-5 h-5" />
             Aula Pronta no Galpão
           </div>
@@ -220,51 +220,51 @@ export default function PDFUpload({ user, chunk, onGoToGalpao }: { user: Firebas
             <button 
               onClick={() => setActiveTab('summary')}
               className={`w-full p-6 rounded-3xl border-2 transition-all text-left flex items-center gap-4 ${
-                activeTab === 'summary' ? 'border-indigo-600 bg-indigo-50 shadow-md' : 'border-slate-100 bg-white'
+                activeTab === 'summary' ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-900/30 shadow-md' : 'border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900'
               }`}
             >
-              <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${activeTab === 'summary' ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-400'}`}>
+              <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${activeTab === 'summary' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500'}`}>
                 <FileText className="w-6 h-6" />
               </div>
               <div className="overflow-hidden">
-                <p className={`font-bold truncate ${activeTab === 'summary' ? 'text-indigo-900' : 'text-gray-700'}`}>Resumo Dinâmico</p>
-                <p className="text-xs text-gray-500 truncate">Áudio & Pontos Chave</p>
+                <p className={`font-bold truncate ${activeTab === 'summary' ? 'text-indigo-900 dark:text-indigo-100' : 'text-gray-700 dark:text-gray-300'}`}>Resumo Dinâmico</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 truncate">Áudio & Pontos Chave</p>
               </div>
             </button>
 
             <button 
               onClick={() => setActiveTab('mindmap')}
               className={`w-full p-6 rounded-3xl border-2 transition-all text-left flex items-center gap-4 ${
-                activeTab === 'mindmap' ? 'border-indigo-600 bg-indigo-50 shadow-md' : 'border-slate-100 bg-white'
+                activeTab === 'mindmap' ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-900/30 shadow-md' : 'border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900'
               }`}
             >
-              <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${activeTab === 'mindmap' ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-400'}`}>
+              <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${activeTab === 'mindmap' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500'}`}>
                 <Network className="w-6 h-6" />
               </div>
               <div className="overflow-hidden">
-                <p className={`font-bold truncate ${activeTab === 'mindmap' ? 'text-indigo-900' : 'text-gray-700'}`}>Mapa Mental IA</p>
-                <p className="text-xs text-gray-500 truncate">Esquema Estruturado</p>
+                <p className={`font-bold truncate ${activeTab === 'mindmap' ? 'text-indigo-900 dark:text-indigo-100' : 'text-gray-700 dark:text-gray-300'}`}>Mapa Mental IA</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 truncate">Esquema Estruturado</p>
               </div>
             </button>
 
             <button 
               onClick={() => setActiveTab('questions')}
               className={`w-full p-6 rounded-3xl border-2 transition-all text-left flex items-center gap-4 ${
-                activeTab === 'questions' ? 'border-indigo-600 bg-indigo-50 shadow-md' : 'border-slate-100 bg-white'
+                activeTab === 'questions' ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-900/30 shadow-md' : 'border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900'
               }`}
             >
-              <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${activeTab === 'questions' ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-400'}`}>
+              <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${activeTab === 'questions' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500'}`}>
                 <ListChecks className="w-6 h-6" />
               </div>
               <div className="overflow-hidden">
-                <p className={`font-bold truncate ${activeTab === 'questions' ? 'text-indigo-900' : 'text-gray-700'}`}>Simulador de Banca</p>
-                <p className="text-xs text-gray-500 truncate">{questions.length} questões c/ feedback</p>
+                <p className={`font-bold truncate ${activeTab === 'questions' ? 'text-indigo-900 dark:text-indigo-100' : 'text-gray-700 dark:text-gray-300'}`}>Simulador de Banca</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{questions.length} questões c/ feedback</p>
               </div>
             </button>
           </div>
 
           {/* Content Area */}
-          <div className="lg:col-span-2 bg-white rounded-[32px] shadow-sm border border-slate-100 overflow-hidden">
+          <div className="lg:col-span-2 bg-white dark:bg-slate-900 rounded-[32px] shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden">
             <AnimatePresence mode="wait">
               {activeTab === 'summary' && (
                 <motion.div 
@@ -276,8 +276,8 @@ export default function PDFUpload({ user, chunk, onGoToGalpao }: { user: Firebas
                 >
                   <section>
                     <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                        <BookOpen className="w-6 h-6 text-indigo-600" />
+                      <h3 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                        <BookOpen className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
                         Resumo Executivo
                       </h3>
                       <button 
@@ -292,23 +292,23 @@ export default function PDFUpload({ user, chunk, onGoToGalpao }: { user: Firebas
                         {isPlayingAudio && activeAudioText === result.summary ? 'Pausar Áudio' : 'Ouvir Resumo'}
                       </button>
                     </div>
-                    <p className="text-gray-600 leading-relaxed text-sm bg-slate-50 p-6 rounded-2xl border border-slate-100">
+                    <p className="text-gray-600 dark:text-gray-400 leading-relaxed text-sm bg-slate-50 dark:bg-slate-800/50 p-6 rounded-2xl border border-slate-100 dark:border-slate-800">
                       {result.summary}
                     </p>
                   </section>
 
                   <section>
-                    <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                       <Sparkles className="w-6 h-6 text-amber-500" />
                       Pontos Mais Importantes
                     </h3>
                     <div className="grid grid-cols-1 gap-3">
                       {result.keyPoints?.map((point: string, i: number) => (
-                        <div key={i} className="flex items-start gap-3 p-4 bg-white rounded-2xl border border-slate-200 shadow-sm">
-                          <div className="w-6 h-6 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">
+                        <div key={i} className="flex items-start gap-3 p-4 bg-white dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                          <div className="w-6 h-6 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">
                             {i + 1}
                           </div>
-                          <p className="text-sm text-gray-700 font-medium leading-relaxed">{point}</p>
+                          <p className="text-sm text-gray-700 dark:text-gray-300 font-medium leading-relaxed">{point}</p>
                         </div>
                       ))}
                     </div>
@@ -324,13 +324,13 @@ export default function PDFUpload({ user, chunk, onGoToGalpao }: { user: Firebas
                   exit={{ opacity: 0, x: -20 }}
                   className="p-10 space-y-8"
                 >
-                  <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                    <Network className="w-6 h-6 text-indigo-600" />
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+                    <Network className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
                     Mapa Mental
                   </h3>
                   {mindMap && mindMap.title ? (
-                    <div className="bg-slate-50 p-8 rounded-3xl border border-slate-200">
-                       <h4 className="font-black text-xl text-indigo-900 mb-6 pb-4 border-b-2 border-indigo-100">
+                    <div className="bg-slate-50 dark:bg-slate-800/50 p-8 rounded-3xl border border-slate-200 dark:border-slate-700">
+                       <h4 className="font-black text-xl text-indigo-900 dark:text-indigo-300 mb-6 pb-4 border-b-2 border-indigo-100 dark:border-indigo-900/50">
                          {mindMap.title}
                        </h4>
                        <div className="space-y-4">
@@ -351,8 +351,8 @@ export default function PDFUpload({ user, chunk, onGoToGalpao }: { user: Firebas
                   exit={{ opacity: 0, x: -20 }}
                   className="p-10 space-y-8"
                 >
-                  <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                    <HelpCircle className="w-6 h-6 text-indigo-600" />
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+                    <HelpCircle className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
                     Simulado e Explicações
                   </h3>
                   <div className="space-y-12">
@@ -363,8 +363,8 @@ export default function PDFUpload({ user, chunk, onGoToGalpao }: { user: Firebas
 
                       return (
                         <div key={i} className="space-y-4">
-                          <p className="font-bold text-gray-900 leading-relaxed text-sm">
-                            <span className="text-indigo-600 mr-2 uppercase tracking-wide text-xs bg-indigo-100 px-2 py-1 rounded-md">Questão {i + 1}</span>
+                          <p className="font-bold text-gray-900 dark:text-white leading-relaxed text-sm">
+                            <span className="text-indigo-600 dark:text-indigo-400 mr-2 uppercase tracking-wide text-xs bg-indigo-100 dark:bg-indigo-900/50 px-2 py-1 rounded-md">Questão {i + 1}</span>
                             <br className="mt-2" />
                             {q.text}
                           </p>
@@ -373,13 +373,13 @@ export default function PDFUpload({ user, chunk, onGoToGalpao }: { user: Firebas
                               const isThisSelected = selectedAnswer === j;
                               const isThisCorrect = q.correctOption === j;
                               
-                              let btnClass = "border-slate-200 bg-white hover:bg-slate-50";
+                              let btnClass = "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700";
                               if (isAnswered) {
-                                if (isThisCorrect) btnClass = "border-emerald-500 bg-emerald-50";
-                                else if (isThisSelected) btnClass = "border-red-500 bg-red-50";
-                                else btnClass = "border-slate-100 bg-slate-50 opacity-50";
+                                if (isThisCorrect) btnClass = "border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20";
+                                else if (isThisSelected) btnClass = "border-red-500 bg-red-50 dark:bg-red-900/20";
+                                else btnClass = "border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 opacity-50";
                               } else {
-                                if (isThisSelected) btnClass = "border-indigo-500 bg-indigo-50 ring-2 ring-indigo-200";
+                                if (isThisSelected) btnClass = "border-indigo-500 bg-indigo-50 dark:bg-indigo-900/30 ring-2 ring-indigo-200 dark:ring-indigo-900";
                               }
 
                               return (
@@ -410,7 +410,7 @@ export default function PDFUpload({ user, chunk, onGoToGalpao }: { user: Firebas
                               initial={{ opacity: 0, y: -10 }} 
                               animate={{ opacity: 1, y: 0 }}
                               className={`p-5 rounded-2xl border-l-4 shadow-sm ${
-                                isCorrect ? 'bg-emerald-50 border-emerald-500' : 'bg-rose-50 border-rose-500'
+                                isCorrect ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-500' : 'bg-rose-50 dark:bg-rose-900/20 border-rose-500'
                               }`}
                             >
                               <div className="flex items-center justify-between mb-2">
@@ -419,13 +419,13 @@ export default function PDFUpload({ user, chunk, onGoToGalpao }: { user: Firebas
                                 </span>
                                 <button 
                                   onClick={() => playAudio(q.explanation)}
-                                  className="text-gray-500 hover:text-indigo-600 flex items-center gap-1 text-xs font-bold transition-colors"
+                                  className="text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 flex items-center gap-1 text-xs font-bold transition-colors"
                                 >
                                   <Headphones className="w-4 h-4" /> 
                                   {isPlayingAudio && activeAudioText === q.explanation ? 'Pausar' : 'Ouvir Explicação'}
                                 </button>
                               </div>
-                              <p className="text-gray-700 text-sm leading-relaxed">
+                              <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed">
                                 {q.explanation}
                               </p>
                             </motion.div>

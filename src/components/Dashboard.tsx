@@ -13,6 +13,7 @@ import {
   LineChart,
   Line
 } from 'recharts';
+import { useTheme } from '../contexts/ThemeContext';
 import { 
   Trophy, 
   Clock, 
@@ -23,6 +24,7 @@ import {
 } from 'lucide-react';
 
 export default function Dashboard({ user }: { user: FirebaseUser }) {
+  const { theme } = useTheme();
   const { blocks, activeBlockIndex, completedBlocks } = useStudySession();
   const [sessions, setSessions] = useState<any[]>([]);
   const [userData, setUserData] = useState<any>(null);
@@ -106,12 +108,12 @@ export default function Dashboard({ user }: { user: FirebaseUser }) {
     <div className="space-y-8">
       <header className="flex justify-between items-end">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Bem-vindo, {user.displayName?.split(' ')[0]}!</h1>
-          <p className="text-gray-500">Aqui está o seu progresso de estudos atual.</p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Bem-vindo, {user.displayName?.split(' ')[0]}!</h1>
+          <p className="text-gray-500 dark:text-gray-400">Aqui está o seu progresso de estudos atual.</p>
         </div>
         <button 
           onClick={handleResetStats}
-          className="flex items-center gap-2 text-red-500 bg-red-50 hover:bg-red-100 px-4 py-2 rounded-xl text-sm font-bold transition-colors"
+          className="flex items-center gap-2 text-red-500 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 px-4 py-2 rounded-xl text-sm font-bold transition-colors"
           title="Zerar Estatísticas (Modo Dev)"
         >
           <Trash2 className="w-4 h-4" />
@@ -153,17 +155,24 @@ export default function Dashboard({ user }: { user: FirebaseUser }) {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Weekly Progress */}
-        <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100">
-          <h3 className="text-lg font-bold text-gray-900 mb-6">Progresso Semanal</h3>
+        <div className="bg-white dark:bg-slate-900 p-8 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800">
+          <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6">Progresso Semanal</h3>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={theme === 'dark' ? '#1e293b' : '#f1f5f9'} />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: theme === 'dark' ? '#64748b' : '#94a3b8', fontSize: 12 }} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fill: theme === 'dark' ? '#64748b' : '#94a3b8', fontSize: 12 }} />
                 <Tooltip 
-                  cursor={{ fill: '#f8fafc' }}
-                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                  cursor={{ fill: theme === 'dark' ? '#1e293b' : '#f8fafc' }}
+                  contentStyle={{ 
+                    backgroundColor: theme === 'dark' ? '#0f172a' : '#fff',
+                    borderRadius: '12px', 
+                    border: 'none', 
+                    boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)',
+                    color: theme === 'dark' ? '#fff' : '#000'
+                  }}
+                  itemStyle={{ color: theme === 'dark' ? '#fff' : '#000' }}
                 />
                 <Bar dataKey="horas" fill="#6366f1" radius={[4, 4, 0, 0]} barSize={32} />
               </BarChart>
@@ -172,18 +181,25 @@ export default function Dashboard({ user }: { user: FirebaseUser }) {
         </div>
 
         {/* Performance by Subject */}
-        <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100">
-          <h3 className="text-lg font-bold text-gray-900 mb-6">Desempenho por Matéria</h3>
+        <div className="bg-white dark:bg-slate-900 p-8 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800">
+          <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6">Desempenho por Matéria</h3>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={performanceData}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={theme === 'dark' ? '#1e293b' : '#f1f5f9'} />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: theme === 'dark' ? '#64748b' : '#94a3b8', fontSize: 12 }} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fill: theme === 'dark' ? '#64748b' : '#94a3b8', fontSize: 12 }} />
                 <Tooltip 
-                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                  contentStyle={{ 
+                    backgroundColor: theme === 'dark' ? '#0f172a' : '#fff',
+                    borderRadius: '12px', 
+                    border: 'none', 
+                    boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)',
+                    color: theme === 'dark' ? '#fff' : '#000'
+                  }}
+                  itemStyle={{ color: theme === 'dark' ? '#fff' : '#000' }}
                 />
-                <Line type="monotone" dataKey="score" stroke="#f59e0b" strokeWidth={3} dot={{ r: 6, fill: '#f59e0b', strokeWidth: 2, stroke: '#fff' }} />
+                <Line type="monotone" dataKey="score" stroke="#f59e0b" strokeWidth={3} dot={{ r: 6, fill: '#f59e0b', strokeWidth: 2, stroke: theme === 'dark' ? '#0f172a' : '#fff' }} />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -210,13 +226,13 @@ export default function Dashboard({ user }: { user: FirebaseUser }) {
 
 function StatCard({ icon: Icon, label, value, subValue, color }: any) {
   return (
-    <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
+    <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800 hover:shadow-md transition-shadow">
       <div className={`${color} w-12 h-12 rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-opacity-20`}>
         <Icon className="w-6 h-6 text-white" />
       </div>
-      <p className="text-sm font-medium text-gray-500 mb-1">{label}</p>
-      <h4 className="text-2xl font-bold text-gray-900 mb-1">{value}</h4>
-      <p className="text-xs text-emerald-600 font-medium">{subValue}</p>
+      <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">{label}</p>
+      <h4 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">{value}</h4>
+      <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">{subValue}</p>
     </div>
   );
 }

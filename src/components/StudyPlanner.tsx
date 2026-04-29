@@ -185,13 +185,13 @@ export default function StudyPlanner({ user }: { user: FirebaseUser }) {
     <div className="space-y-8 pb-20">
       <header className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Planejador Inteligente</h1>
-          <p className="text-gray-500">Configure suas matérias e deixe a IA organizar seu tempo.</p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Planejador Inteligente</h1>
+          <p className="text-gray-500 dark:text-gray-400">Configure suas matérias e deixe a IA organizar seu tempo.</p>
         </div>
         <button 
           onClick={handleSaveSettings}
           disabled={isSaving}
-          className="flex items-center gap-2 px-6 py-3 bg-white border border-slate-200 text-gray-700 font-semibold rounded-xl hover:bg-slate-50 transition-colors shadow-sm disabled:opacity-75 disabled:cursor-wait"
+          className="flex items-center gap-2 px-6 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-gray-700 dark:text-gray-300 font-semibold rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors shadow-sm disabled:opacity-75 disabled:cursor-wait"
         >
           {isSaving ? (
              <motion.div 
@@ -209,42 +209,42 @@ export default function StudyPlanner({ user }: { user: FirebaseUser }) {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Settings Panel */}
         <div className="lg:col-span-1 space-y-6 print:hidden">
-          <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
-            <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-              <Clock className="w-5 h-5 text-indigo-600" />
+          <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800">
+            <h3 className="text-lg font-bold mb-4 flex items-center gap-2 dark:text-white">
+              <Clock className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
               Metas Gerais
             </h3>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Horas Totais de Estudo</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Horas Totais de Estudo</label>
                 <input 
                   type="number" 
                   value={totalHours === 0 ? '' : totalHours} 
                   onChange={(e) => setTotalHours(e.target.value === '' ? 0 : Number(e.target.value))}
-                  className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"
+                  className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-gray-900 dark:text-white"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Horas por Dia</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Horas por Dia</label>
                 <input 
                   type="number" 
                   value={dailyGoal === 0 ? '' : dailyGoal} 
                   onChange={(e) => setDailyGoal(e.target.value === '' ? 0 : Number(e.target.value))}
-                  className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"
+                  className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-gray-900 dark:text-white"
                 />
               </div>
             </div>
           </div>
 
-          <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+          <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold flex items-center gap-2">
-                <Weight className="w-5 h-5 text-indigo-600" />
+              <h3 className="text-lg font-bold flex items-center gap-2 dark:text-white">
+                <Weight className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
                 Matérias e Pesos
               </h3>
               <button 
                 onClick={handleAddSubject}
-                className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                className="p-2 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg transition-colors"
               >
                 <Plus className="w-5 h-5" />
               </button>
@@ -258,18 +258,18 @@ export default function StudyPlanner({ user }: { user: FirebaseUser }) {
                     placeholder="Matéria"
                     value={subject.name}
                     onChange={(e) => handleSubjectChange(index, 'name', e.target.value)}
-                    className="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:ring-1 focus:ring-indigo-500"
+                    className="flex-1 px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-1 focus:ring-indigo-500 text-gray-900 dark:text-white"
                   />
                   <input 
                     type="number" 
                     placeholder="%"
                     value={subject.weight === 0 ? '' : subject.weight}
                     onChange={(e) => handleSubjectChange(index, 'weight', e.target.value === '' ? 0 : Number(e.target.value))}
-                    className="w-16 px-2 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-center outline-none focus:ring-1 focus:ring-indigo-500"
+                    className="w-16 px-2 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-center outline-none focus:ring-1 focus:ring-indigo-500 text-gray-900 dark:text-white"
                   />
                   <button 
                     onClick={() => handleRemoveSubject(index)}
-                    className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                    className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -277,7 +277,7 @@ export default function StudyPlanner({ user }: { user: FirebaseUser }) {
               ))}
             </div>
 
-            <div className={`mt-4 p-3 rounded-xl text-xs flex items-center gap-2 ${totalWeight === 100 ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'}`}>
+            <div className={`mt-4 p-3 rounded-xl text-xs flex items-center gap-2 ${totalWeight === 100 ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400' : 'bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400'}`}>
               <AlertCircle className="w-4 h-4" />
               Total de pesos: {totalWeight}% {totalWeight !== 100 && '(Recomendado: 100%)'}
             </div>
@@ -304,54 +304,54 @@ export default function StudyPlanner({ user }: { user: FirebaseUser }) {
         {/* Plan Display */}
         <div className="lg:col-span-2">
           {plan.length > 0 ? (
-            <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
-              <div className="p-6 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
-                <h3 className="font-bold text-gray-900">Cronograma Sugerido</h3>
-                <button onClick={downloadPDF} className="p-2 text-indigo-600 hover:bg-indigo-100 rounded-lg transition-colors flex items-center gap-2 text-sm font-semibold" title="Baixar Cronograma em PDF">
+            <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden">
+              <div className="p-6 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50 flex justify-between items-center">
+                <h3 className="font-bold text-gray-900 dark:text-white">Cronograma Sugerido</h3>
+                <button onClick={downloadPDF} className="p-2 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 rounded-lg transition-colors flex items-center gap-2 text-sm font-semibold" title="Baixar Cronograma em PDF">
                   <Printer className="w-4 h-4" />
                   Gerar PDF
                 </button>
               </div>
-              <div className="divide-y divide-slate-100">
+              <div className="divide-y divide-slate-100 dark:divide-slate-800">
                 {plan.map((item, i) => (
                   <motion.div 
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: i * 0.05 }}
                     key={i} 
-                    className="p-6 flex items-center justify-between hover:bg-slate-50 transition-colors"
+                    className="p-6 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
                   >
                     <div className="flex items-center gap-4">
                       <button 
                         onClick={() => toggleBlockCompletion(i)}
                         className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${
                           item.completed 
-                            ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-100' 
-                            : 'bg-indigo-100 text-indigo-600 hover:bg-indigo-200'
+                            ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-100 dark:shadow-none' 
+                            : 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-200 dark:hover:bg-indigo-900/70'
                         }`}
                       >
                         {item.completed ? <CheckCircle2 className="w-6 h-6" /> : i + 1}
                       </button>
                       <div className={item.completed ? 'opacity-50 line-through' : ''}>
-                        <h4 className="font-bold text-gray-900">{item.subject}</h4>
-                        <p className="text-sm text-gray-500">{item.focusArea}</p>
+                        <h4 className="font-bold text-gray-900 dark:text-white">{item.subject}</h4>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">{item.focusArea}</p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-sm font-bold text-indigo-600">{item.durationMinutes} min</div>
-                      <div className="text-xs text-gray-400">Bloco Sugerido</div>
+                      <div className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{item.durationMinutes} min</div>
+                      <div className="text-xs text-gray-400 dark:text-gray-500">Bloco Sugerido</div>
                     </div>
                   </motion.div>
                 ))}
               </div>
             </div>
           ) : (
-            <div className="h-full min-h-[400px] bg-slate-100/50 border-2 border-dashed border-slate-200 rounded-3xl flex flex-col items-center justify-center p-10 text-center">
-              <div className="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center mb-4">
+            <div className="h-full min-h-[400px] bg-slate-100/50 dark:bg-slate-900/50 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-3xl flex flex-col items-center justify-center p-10 text-center">
+              <div className="w-16 h-16 bg-white dark:bg-slate-800 rounded-2xl shadow-sm flex items-center justify-center mb-4">
                 <Sparkles className="w-8 h-8 text-indigo-400" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Nenhum cronograma gerado</h3>
-              <p className="text-gray-500 max-w-xs">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Nenhum cronograma gerado</h3>
+              <p className="text-gray-500 dark:text-gray-400 max-w-xs">
                 Configure suas matérias e clique em "Gerar Cronograma" para que a IA crie um plano personalizado para você.
               </p>
             </div>
