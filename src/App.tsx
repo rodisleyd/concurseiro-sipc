@@ -197,7 +197,13 @@ export default function App() {
                 {activeTab === 'planner' && <StudyPlanner user={user} />}
                 {activeTab === 'galpao' && <Galpao user={user} onStudyChunk={handleStudyChunk} />}
                 {activeTab === 'materials' && <PDFUpload user={user} chunk={activeChunk} onGoToGalpao={() => setActiveTab('galpao')} />}
-                {activeTab === 'cycle' && <StudyCycle user={user} />}
+                {activeTab === 'cycle' && (
+                  <StudyCycle 
+                    user={user} 
+                    onStudyChunk={handleStudyChunk}
+                    onGoToGalpao={() => setActiveTab('galpao')}
+                  />
+                )}
                 {activeTab === 'tutor' && <AITutor user={user} />}
               </motion.div>
             </AnimatePresence>

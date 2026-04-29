@@ -20,7 +20,11 @@ import {
 import { motion } from 'motion/react';
 import { useToast } from './Toast';
 
-export default function StudyCycle({ user }: { user: FirebaseUser }) {
+export default function StudyCycle({ user, onStudyChunk, onGoToGalpao }: { 
+  user: FirebaseUser, 
+  onStudyChunk: (chunk: any) => void,
+  onGoToGalpao: () => void 
+}) {
   const { showToast } = useToast();
   const { 
     blocks, 
@@ -36,10 +40,18 @@ export default function StudyCycle({ user }: { user: FirebaseUser }) {
     reloadData
   } = useStudySession();
 
+  const [chunks, setChunks] = useState<any[]>([]);
+
   // Recarregar os dados do banco toda vez que abrir esta tela
   useEffect(() => {
     reloadData();
-  }, [reloadData]);
+    
+    // Inscreve para pegar os materiais do Galpão e saber quais estão prontos
+    const unsubscribe = studyService.subscribeToGalpao(user.uid, (data) => {
+      setChunks(data);
+    });
+    return () => unsubscribe();
+  }, [reloadData, user.uid]);
 
   const [explanation, setExplanation] = useState('');
   const [isExplaining, setIsExplaining] = useState(false);
@@ -79,6 +91,34 @@ export default function StudyCycle({ user }: { user: FirebaseUser }) {
     }
   };
 
+  const handleBlockClick = (index: number) => {
+    const block = blocks[index];
+    jumpToBlock(index);
+
+    // Tenta encontrar um material no galpão que combine com esta matéria
+    // Procuramos por títulos que contenham o nome da matéria
+    const foundChunk = chunks.find(c => 
+      c.title.toLowerCase().includes(block.subject.toLowerCase()) || 
+      block.subject.toLowerCase().includes(c.title.toLowerCase())
+    );
+
+    if (foundChunk) {
+      if (foundChunk.summaryData) {
+        // Aula já processada: vai direto para estudo
+        onStudyChunk(foundChunk);
+        showToast(`Carregando aula: ${block.subject}`, 'success');
+      } else {
+        // Existe o pedaço mas não foi processado: vai para galpão para processar
+        onGoToGalpao();
+        showToast(`Esta aula precisa ser processada no Galpão: ${block.subject}`, 'info');
+      }
+    } else {
+      // Não existe material: vai para o galpão para upload/seleção
+      onGoToGalpao();
+      showToast(`Nenhum material encontrado para ${block.subject}. Adicione no Galpão!`, 'info');
+    }
+  };
+
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -98,7 +138,7 @@ export default function StudyCycle({ user }: { user: FirebaseUser }) {
           return (
             <div 
               key={`${block.id}-${index}`}
-              onClick={() => jumpToBlock(index)}
+              onClick={() => handleBlockClick(index)}
               className={`p-5 rounded-2xl border-2 transition-all relative overflow-hidden cursor-pointer hover:scale-[1.02] active:scale-95 ${
                 activeBlockIndex === index 
                   ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-900/30 shadow-md' 
