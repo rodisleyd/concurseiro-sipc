@@ -218,34 +218,83 @@ export const geminiService = {
 
   async textToSpeech(text: string) {
     try {
-      // Usando v1alpha que tem suporte melhor para modalidades de áudio no SDK v1.29.0
+      // Usando v1beta e o modelo 1.5-flash que é mais estável para multimodal
       const model = ai.getGenerativeModel({ 
-        model: "gemini-1.5-flash", 
-        apiVersion: "v1alpha" 
+        model: "gemini-1.5-flash-latest", 
+        apiVersion: "v1beta" 
       });
       
       const result = await model.generateContent({
-        contents: [{ role: "user", parts: [{ text: `Gere apenas o áudio lendo este texto em português: ${text}` }] }],
+        contents: [{ 
+          role: "user", 
+          parts: [{ text: `Aja como um professor atencioso e leia este texto de forma natural e humana em português do Brasil: ${text}` }] 
+        }],
         generationConfig: {
           // @ts-ignore
           responseModalities: ["AUDIO"],
           speechConfig: {
             voiceConfig: {
               prebuiltVoiceConfig: {
-                voiceName: "Aoide"
+                voiceName: "Puck" // Testando Puck que é uma voz masculina mais jovem e natural
               }
             }
           }
         }
       });
 
-      const parts = result.response.candidates?.[0].content.parts;
-      const audioPart = parts?.find(p => p.inlineData && p.inlineData.mimeType.startsWith('audio/'));
+      const audioPart = result.response.candidates?.[0].content.parts.find(p => p.inlineData);
+      const base64Data = audioPart?.inlineData?.data;
+
+      if (!base64Data) return null;
+
+      // Gemini geralmente retorna PCM bruto. Vamos tentar envolver em um cabeçalho WAV básico se necessário.
+      // Se o mimeType for audio/wav já vem com cabeçalho, mas se for audio/pcm precisa.
+      const mimeType = audioPart?.inlineData?.mimeType || "audio/wav";
       
-      return audioPart?.inlineData?.data;
+      if (mimeType.includes("pcm")) {
+        return this.wrapPcmInWav(base64Data, 24000);
+      }
+
+      return base64Data;
     } catch (error) {
       console.error("Gemini TTS Error:", error);
       return null;
     }
+  },
+
+  // Helper para envolver PCM em WAV
+  wrapPcmInWav(base64Pcm: string, sampleRate: number) {
+    const binaryString = window.atob(base64Pcm);
+    const pcmData = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) {
+      pcmData[i] = binaryString.charCodeAt(i);
+    }
+    
+    const wavHeader = new ArrayBuffer(44);
+    const view = new DataView(wavHeader);
+    
+    view.setUint32(0, 0x52494646, false); // RIFF
+    view.setUint32(4, 36 + pcmData.length, true);
+    view.setUint32(8, 0x57415645, false); // WAVE
+    view.setUint32(12, 0x666d7420, false); // fmt 
+    view.setUint32(16, 16, true);
+    view.setUint16(20, 1, true); // PCM
+    view.setUint16(22, 1, true); // Mono
+    view.setUint32(24, sampleRate, true);
+    view.setUint32(28, sampleRate * 2, true);
+    view.setUint16(32, 2, true);
+    view.setUint16(34, 16, true);
+    view.setUint32(36, 0x64617461, false); // data
+    view.setUint32(40, pcmData.length, true);
+    
+    const wavData = new Uint8Array(44 + pcmData.length);
+    wavData.set(new Uint8Array(wavHeader), 0);
+    wavData.set(pcmData, 44);
+    
+    let binary = '';
+    for (let i = 0; i < wavData.byteLength; i++) {
+      binary += String.fromCharCode(wavData[i]);
+    }
+    return window.btoa(binary);
   }
 };
