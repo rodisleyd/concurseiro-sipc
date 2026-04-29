@@ -1,6 +1,7 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
+const apiKey = (import.meta as any).env?.VITE_GEMINI_API_KEY || (import.meta as any).env?.GEMINI_API_KEY || (process as any).env?.GEMINI_API_KEY || "";
+const ai = new GoogleGenAI({ apiKey });
 
 export const geminiService = {
   async generateStudyPlan(subjects: { name: string; weight: number }[], totalHours: number) {
@@ -218,8 +219,8 @@ export const geminiService = {
 
   async textToSpeech(text: string) {
     try {
-      // Implementando o sistema de "Tone" do Audio Spark para naturalidade máxima
-      const toneInstructions = "Tone: gentle, acting like a teacher.\nText to speak: ";
+      // Tom mais alegre e humano, baseado no sucesso do Audio Spark
+      const toneInstructions = "Tone: cheerful, gentle, acting like a teacher.\nText to speak: ";
       const finalPrompt = `${toneInstructions}${text}`;
 
       // @ts-ignore
@@ -227,7 +228,6 @@ export const geminiService = {
         model: "gemini-3.1-flash-tts-preview",
         contents: [{ parts: [{ text: finalPrompt }] }],
         config: {
-          // Desativando filtros de segurança para evitar que a IA se negue a ler termos jurídicos/complexos de concursos
           safetySettings: [
             { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
             { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
@@ -248,11 +248,21 @@ export const geminiService = {
       const base64Data = audioPart?.inlineData?.data || audioPart?.inline_data?.data;
 
       if (!base64Data) {
-        console.warn("Nenhum dado de áudio recebido do Gemini 3.1");
+        // Se falhar o models.generateContent, tentamos o método tradicional como fallback
+        const model = ai.getGenerativeModel({ model: "gemini-3.1-flash-tts-preview" });
+        const result = await model.generateContent({
+          contents: [{ role: "user", parts: [{ text: finalPrompt }] }],
+          generationConfig: {
+            // @ts-ignore
+            responseModalities: ["AUDIO"],
+            speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: "Kore" } } }
+          }
+        });
+        const altPart = result.response.candidates?.[0].content.parts.find(p => p.inlineData);
+        if (altPart?.inlineData?.data) return this.wrapPcmInWav(altPart.inlineData.data, 24000);
         return null;
       }
 
-      // Gemini 3.1 Flash TTS retorna PCM mono de 16 bits a 24kHz.
       return this.wrapPcmInWav(base64Data, 24000);
     } catch (error) {
       console.error("Gemini TTS Error:", error);
