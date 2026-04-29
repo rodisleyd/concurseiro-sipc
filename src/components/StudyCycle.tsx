@@ -97,10 +97,16 @@ export default function StudyCycle({ user, onStudyChunk, onGoToGalpao }: {
 
     // Tenta encontrar um material no galpão que combine com esta matéria
     // Procuramos por títulos que contenham o nome da matéria
-    const foundChunk = chunks.find(c => 
-      c.title.toLowerCase().includes(block.subject.toLowerCase()) || 
-      block.subject.toLowerCase().includes(c.title.toLowerCase())
-    );
+    const foundChunk = chunks.find(c => {
+      const subjectLower = block.subject.toLowerCase();
+      const titleLower = c.title.toLowerCase();
+      const fileNameLower = (c.fileName || '').toLowerCase().replace('.pdf', '');
+      
+      return titleLower.includes(subjectLower) || 
+             subjectLower.includes(titleLower) ||
+             fileNameLower.includes(subjectLower) ||
+             subjectLower.includes(fileNameLower);
+    });
 
     if (foundChunk) {
       if (foundChunk.summaryData) {
