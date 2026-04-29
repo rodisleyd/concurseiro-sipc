@@ -23,7 +23,7 @@ import {
   Trash2
 } from 'lucide-react';
 
-export default function Dashboard({ user }: { user: FirebaseUser }) {
+export default function Dashboard({ user, onStartNext }: { user: FirebaseUser, onStartNext?: () => void }) {
   const { theme } = useTheme();
   const { blocks, activeBlockIndex, completedBlocks } = useStudySession();
   const [sessions, setSessions] = useState<any[]>([]);
@@ -214,7 +214,10 @@ export default function Dashboard({ user }: { user: FirebaseUser }) {
             Sua matéria da vez no ciclo é **{upcomingBlock}**. 
             Mantenha o foco para acumular XP e subir de nível hoje!
           </p>
-          <button className="bg-white text-indigo-600 px-6 py-3 rounded-xl font-bold hover:bg-indigo-50 transition-colors">
+          <button 
+            onClick={onStartNext}
+            className="bg-white text-indigo-600 px-6 py-3 rounded-xl font-bold hover:bg-indigo-50 transition-colors"
+          >
             Começar Agora
           </button>
         </div>

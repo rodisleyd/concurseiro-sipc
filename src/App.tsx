@@ -193,7 +193,7 @@ export default function App() {
                 transition={{ duration: 0.2 }}
                 className="max-w-6xl mx-auto"
               >
-                {activeTab === 'dashboard' && <Dashboard user={user} />}
+                {activeTab === 'dashboard' && <Dashboard user={user} onStartNext={() => setActiveTab('cycle')} />}
                 {activeTab === 'planner' && <StudyPlanner user={user} />}
                 {activeTab === 'galpao' && <Galpao user={user} onStudyChunk={handleStudyChunk} />}
                 {activeTab === 'materials' && <PDFUpload user={user} chunk={activeChunk} onGoToGalpao={() => setActiveTab('galpao')} />}
