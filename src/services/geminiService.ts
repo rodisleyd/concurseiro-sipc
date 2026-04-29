@@ -278,7 +278,6 @@ export const geminiService = {
       return null;
     }
   },
-  },
 
   // Helper para envolver PCM em WAV
   wrapPcmInWav(base64Pcm: string, sampleRate: number) {
