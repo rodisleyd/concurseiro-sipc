@@ -34,6 +34,7 @@ export default function AITutor({ user }: { user: FirebaseUser }) {
   const [quickSearchResponse, setQuickSearchResponse] = useState('');
   const [isQuickSearching, setIsQuickSearching] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -124,29 +125,54 @@ export default function AITutor({ user }: { user: FirebaseUser }) {
     doc.save(`estudo-concurseiro-${new Date().getTime()}.pdf`);
   };
 
-  const playAudio = (text: string, index: number) => {
+  const playAudio = async (text: string, index: number) => {
     if (playingIndex === index) {
-      window.speechSynthesis.cancel();
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
       setPlayingIndex(null);
       return;
     }
     
-    window.speechSynthesis.cancel();
-    
-    // Limpa asteriscos, hashtags e outros caracteres de formatação Markdown para a voz não ler isso
-    const cleanText = text
-      .replace(/[*#_`~]/g, '')
-      .replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1');
-
-    const utterance = new SpeechSynthesisUtterance(cleanText);
-    utterance.lang = 'pt-BR';
-    utterance.rate = 1.0;
-    
-    utterance.onend = () => setPlayingIndex(null);
-    utterance.onerror = () => setPlayingIndex(null);
+    // Para qualquer áudio anterior
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
     
     setPlayingIndex(index);
-    window.speechSynthesis.speak(utterance);
+
+    try {
+      // Limpa markdown para o TTS
+      const cleanText = text
+        .replace(/[*#_`~]/g, '')
+        .replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1');
+
+      const base64Audio = await geminiService.textToSpeech(cleanText);
+      
+      if (base64Audio) {
+        const audio = new Audio(`data:audio/wav;base64,${base64Audio}`);
+        audioRef.current = audio;
+        
+        audio.onended = () => {
+          setPlayingIndex(null);
+          audioRef.current = null;
+        };
+
+        audio.onerror = () => {
+          setPlayingIndex(null);
+          audioRef.current = null;
+        };
+
+        await audio.play();
+      } else {
+        setPlayingIndex(null);
+      }
+    } catch (error) {
+      console.error('Erro ao reproduzir áudio Gemini:', error);
+      setPlayingIndex(null);
+    }
   };
 
   return (

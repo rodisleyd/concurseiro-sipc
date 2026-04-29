@@ -214,5 +214,26 @@ export const geminiService = {
       }
     });
     return response.text;
+  },
+
+  async textToSpeech(text: string) {
+    const model = ai.getGenerativeModel({ model: "gemini-3.1-flash-tts-preview" });
+    const result = await model.generateContent({
+      contents: [{ role: "user", parts: [{ text }] }],
+      generationConfig: {
+        // @ts-ignore
+        responseModalities: ["audio"],
+        speechConfig: {
+          voiceConfig: {
+            prebuiltVoiceConfig: {
+              voiceName: "Aoide"
+            }
+          }
+        }
+      }
+    });
+
+    const audioPart = result.response.candidates?.[0].content.parts.find(p => p.inlineData?.mimeType.startsWith('audio/'));
+    return audioPart?.inlineData?.data; // Retorna o base64
   }
 };
