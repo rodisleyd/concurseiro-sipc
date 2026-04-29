@@ -218,16 +218,26 @@ export const geminiService = {
 
   async textToSpeech(text: string) {
     try {
-      // Usando a nova sintaxe da SDK v1.50+ conforme projeto Audio Spark
+      // Implementando o sistema de "Tone" do Audio Spark para naturalidade máxima
+      const toneInstructions = "Tone: gentle, acting like a teacher.\nText to speak: ";
+      const finalPrompt = `${toneInstructions}${text}`;
+
       // @ts-ignore
       const response = await ai.models.generateContent({
         model: "gemini-3.1-flash-tts-preview",
-        contents: [{ parts: [{ text }] }],
+        contents: [{ parts: [{ text: finalPrompt }] }],
         config: {
+          // Desativando filtros de segurança para evitar que a IA se negue a ler termos jurídicos/complexos de concursos
+          safetySettings: [
+            { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
+            { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
+            { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
+            { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" },
+          ],
           responseModalities: ["AUDIO"],
           speechConfig: {
             voiceConfig: {
-              prebuiltVoiceConfig: { voiceName: "Kore" } // Usando Kore que funcionou no Spark
+              prebuiltVoiceConfig: { voiceName: "Kore" } 
             }
           }
         }
@@ -237,9 +247,12 @@ export const geminiService = {
       const audioPart = parts.find(p => p.inlineData || p.inline_data);
       const base64Data = audioPart?.inlineData?.data || audioPart?.inline_data?.data;
 
-      if (!base64Data) return null;
+      if (!base64Data) {
+        console.warn("Nenhum dado de áudio recebido do Gemini 3.1");
+        return null;
+      }
 
-      // Gemini geralmente retorna PCM. Envolvendo em WAV para garantir reprodução.
+      // Gemini 3.1 Flash TTS retorna PCM mono de 16 bits a 24kHz.
       return this.wrapPcmInWav(base64Data, 24000);
     } catch (error) {
       console.error("Gemini TTS Error:", error);
