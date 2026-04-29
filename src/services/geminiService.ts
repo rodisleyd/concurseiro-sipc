@@ -217,23 +217,35 @@ export const geminiService = {
   },
 
   async textToSpeech(text: string) {
-    const model = ai.getGenerativeModel({ model: "gemini-3.1-flash-tts-preview" });
-    const result = await model.generateContent({
-      contents: [{ role: "user", parts: [{ text: `Leia o seguinte texto de forma extremamente natural, humana e com boa entonação em português do Brasil: ${text}` }] }],
-      generationConfig: {
-        // @ts-ignore
-        responseModalities: ["audio"],
-        speechConfig: {
-          voiceConfig: {
-            prebuiltVoiceConfig: {
-              voiceName: "Puck"
+    try {
+      // Usando v1alpha que tem suporte melhor para modalidades de áudio no SDK v1.29.0
+      const model = ai.getGenerativeModel({ 
+        model: "gemini-1.5-flash", 
+        apiVersion: "v1alpha" 
+      });
+      
+      const result = await model.generateContent({
+        contents: [{ role: "user", parts: [{ text: `Gere apenas o áudio lendo este texto em português: ${text}` }] }],
+        generationConfig: {
+          // @ts-ignore
+          responseModalities: ["AUDIO"],
+          speechConfig: {
+            voiceConfig: {
+              prebuiltVoiceConfig: {
+                voiceName: "Aoide"
+              }
             }
           }
         }
-      }
-    });
+      });
 
-    const audioPart = result.response.candidates?.[0].content.parts.find(p => p.inlineData?.mimeType.startsWith('audio/'));
-    return audioPart?.inlineData?.data; // Retorna o base64
+      const parts = result.response.candidates?.[0].content.parts;
+      const audioPart = parts?.find(p => p.inlineData && p.inlineData.mimeType.startsWith('audio/'));
+      
+      return audioPart?.inlineData?.data;
+    } catch (error) {
+      console.error("Gemini TTS Error:", error);
+      return null;
+    }
   }
 };

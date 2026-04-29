@@ -141,17 +141,24 @@ export default function PDFUpload({ user, chunk, onGoToGalpao }: { user: Firebas
         };
 
         audio.onerror = () => {
-          setIsPlayingAudio(false);
-          audioRef.current = null;
+          const utterance = new SpeechSynthesisUtterance(cleanText);
+          utterance.lang = 'pt-BR';
+          utterance.onend = () => setIsPlayingAudio(false);
+          window.speechSynthesis.speak(utterance);
         };
 
         await audio.play();
       } else {
-        setIsPlayingAudio(false);
+        const utterance = new SpeechSynthesisUtterance(cleanText);
+        utterance.lang = 'pt-BR';
+        utterance.onend = () => setIsPlayingAudio(false);
+        window.speechSynthesis.speak(utterance);
       }
     } catch (error) {
-      console.error('Erro ao reproduzir áudio Gemini:', error);
-      setIsPlayingAudio(false);
+      const utterance = new SpeechSynthesisUtterance(text.replace(/[*#_`~]/g, ''));
+      utterance.lang = 'pt-BR';
+      utterance.onend = () => setIsPlayingAudio(false);
+      window.speechSynthesis.speak(utterance);
     }
   };
 

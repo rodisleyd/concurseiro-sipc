@@ -161,17 +161,24 @@ export default function AITutor({ user }: { user: FirebaseUser }) {
         };
 
         audio.onerror = () => {
-          setPlayingIndex(null);
-          audioRef.current = null;
+          const utterance = new SpeechSynthesisUtterance(cleanText);
+          utterance.lang = 'pt-BR';
+          utterance.onend = () => setPlayingIndex(null);
+          window.speechSynthesis.speak(utterance);
         };
 
         await audio.play();
       } else {
-        setPlayingIndex(null);
+        const utterance = new SpeechSynthesisUtterance(cleanText);
+        utterance.lang = 'pt-BR';
+        utterance.onend = () => setPlayingIndex(null);
+        window.speechSynthesis.speak(utterance);
       }
     } catch (error) {
-      console.error('Erro ao reproduzir áudio Gemini:', error);
-      setPlayingIndex(null);
+      const utterance = new SpeechSynthesisUtterance(text.replace(/[*#_`~]/g, ''));
+      utterance.lang = 'pt-BR';
+      utterance.onend = () => setPlayingIndex(null);
+      window.speechSynthesis.speak(utterance);
     }
   };
 
