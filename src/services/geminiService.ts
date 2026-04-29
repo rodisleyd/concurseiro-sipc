@@ -1,6 +1,6 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
-// Tenta pegar de todas as formas possíveis no Vite
+// Tenta pegar a chave do Vite (VITE_GEMINI_API_KEY)
 const apiKey = (import.meta as any).env?.VITE_GEMINI_API_KEY || 
                (import.meta as any).env?.GEMINI_API_KEY || 
                (process as any).env?.GEMINI_API_KEY || 
