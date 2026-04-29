@@ -218,48 +218,34 @@ export const geminiService = {
 
   async textToSpeech(text: string) {
     try {
-      // Usando exatamente o modelo solicitado pelo usuário
-      const model = ai.getGenerativeModel({ 
-        model: "gemini-3.1-flash-tts-preview", 
-        apiVersion: "v1beta" 
-      });
-      
-      const result = await model.generateContent({
-        contents: [{ 
-          role: "user", 
-          parts: [{ text }] 
-        }],
-        generationConfig: {
-          // @ts-ignore
+      // Usando a nova sintaxe da SDK v1.50+ conforme projeto Audio Spark
+      // @ts-ignore
+      const response = await ai.models.generateContent({
+        model: "gemini-3.1-flash-tts-preview",
+        contents: [{ parts: [{ text }] }],
+        config: {
           responseModalities: ["AUDIO"],
           speechConfig: {
             voiceConfig: {
-              prebuiltVoiceConfig: {
-                voiceName: "Aoide" // Voltando para Aoide que é a voz padrão do 3.1 TTS
-              }
+              prebuiltVoiceConfig: { voiceName: "Kore" } // Usando Kore que funcionou no Spark
             }
           }
         }
       });
 
-      const audioPart = result.response.candidates?.[0].content.parts.find(p => p.inlineData);
-      const base64Data = audioPart?.inlineData?.data;
+      const parts = response.candidates?.[0]?.content?.parts || [];
+      const audioPart = parts.find(p => p.inlineData || p.inline_data);
+      const base64Data = audioPart?.inlineData?.data || audioPart?.inline_data?.data;
 
       if (!base64Data) return null;
 
-      // Gemini geralmente retorna PCM bruto. Vamos tentar envolver em um cabeçalho WAV básico se necessário.
-      // Se o mimeType for audio/wav já vem com cabeçalho, mas se for audio/pcm precisa.
-      const mimeType = audioPart?.inlineData?.mimeType || "audio/wav";
-      
-      if (mimeType.includes("pcm")) {
-        return this.wrapPcmInWav(base64Data, 24000);
-      }
-
-      return base64Data;
+      // Gemini geralmente retorna PCM. Envolvendo em WAV para garantir reprodução.
+      return this.wrapPcmInWav(base64Data, 24000);
     } catch (error) {
       console.error("Gemini TTS Error:", error);
       return null;
     }
+  },
   },
 
   // Helper para envolver PCM em WAV
