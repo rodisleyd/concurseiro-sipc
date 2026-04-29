@@ -34,6 +34,7 @@ export default function PDFUpload({ user, chunk, onGoToGalpao }: { user: Firebas
   // Audio State
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [activeAudioText, setActiveAudioText] = useState('');
+  const audioRef = React.useRef<HTMLAudioElement | null>(null);
 
   // Ao receber um pedaço do Galpão, vamos checar se ele já foi mastigado antes
   useEffect(() => {
@@ -103,30 +104,55 @@ export default function PDFUpload({ user, chunk, onGoToGalpao }: { user: Firebas
     }));
   };
 
-  const playAudio = (text: string) => {
+  const playAudio = async (text: string) => {
     if (isPlayingAudio && text === activeAudioText) {
-      window.speechSynthesis.cancel();
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
       setIsPlayingAudio(false);
       return;
     }
     
-    window.speechSynthesis.cancel();
-    
-    // Filtro de Markdown para a voz não ler os caracteres
-    const cleanText = text
-      .replace(/[*#_`~]/g, '')
-      .replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1');
-
-    const utterance = new SpeechSynthesisUtterance(cleanText);
-    utterance.lang = 'pt-BR';
-    utterance.rate = 1.0;
-    
-    utterance.onend = () => setIsPlayingAudio(false);
-    utterance.onerror = () => setIsPlayingAudio(false);
+    // Para áudio anterior
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
     
     setIsPlayingAudio(true);
     setActiveAudioText(text);
-    window.speechSynthesis.speak(utterance);
+
+    try {
+      // Filtro de Markdown para a voz não ler os caracteres
+      const cleanText = text
+        .replace(/[*#_`~]/g, '')
+        .replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1');
+
+      const base64Audio = await geminiService.textToSpeech(cleanText);
+      
+      if (base64Audio) {
+        const audio = new Audio(`data:audio/wav;base64,${base64Audio}`);
+        audioRef.current = audio;
+        
+        audio.onended = () => {
+          setIsPlayingAudio(false);
+          audioRef.current = null;
+        };
+
+        audio.onerror = () => {
+          setIsPlayingAudio(false);
+          audioRef.current = null;
+        };
+
+        await audio.play();
+      } else {
+        setIsPlayingAudio(false);
+      }
+    } catch (error) {
+      console.error('Erro ao reproduzir áudio Gemini:', error);
+      setIsPlayingAudio(false);
+    }
   };
 
   const renderMindMapNode = (node: any, depth = 0) => {

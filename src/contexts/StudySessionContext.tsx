@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { User as FirebaseUser } from 'firebase/auth';
 import { studyService } from '../services/studyService';
 import { useToast } from '../components/Toast';
+import { geminiService } from '../services/geminiService';
 
 interface Block {
   id: number;
@@ -39,6 +40,7 @@ export function StudySessionProvider({ children, user }: { children: React.React
   const [isActive, setIsActive] = useState(false);
   const [completedBlocks, setCompletedBlocks] = useState<number[]>([]);
   const [isDataLoaded, setIsDataLoaded] = useState(false);
+  const audioRef = React.useRef<HTMLAudioElement | null>(null);
 
   // Salvar progresso automaticamente no LocalStorage e Firebase
   useEffect(() => {
@@ -157,20 +159,30 @@ export function StudySessionProvider({ children, user }: { children: React.React
     return () => clearInterval(interval);
   }, [isActive, timeLeft]);
 
+  const playGeminiVoice = async (text: string) => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
+
+    try {
+      const base64Audio = await geminiService.textToSpeech(text);
+      if (base64Audio) {
+        const audio = new Audio(`data:audio/wav;base64,${base64Audio}`);
+        audioRef.current = audio;
+        await audio.play();
+      }
+    } catch (error) {
+      console.error('Erro no alerta de voz Gemini:', error);
+    }
+  };
+
   const playVoiceAlert = () => {
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance("Tempo esgotado. Preparando próxima matéria da sua sessão de estudos.");
-    utterance.lang = 'pt-BR';
-    utterance.rate = 1.0;
-    window.speechSynthesis.speak(utterance);
+    playGeminiVoice("Tempo esgotado. Preparando próxima matéria da sua sessão de estudos.");
   };
 
   const playFinishAlert = () => {
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance("Parabéns. O ciclo de estudos foi concluído com sucesso. Bom descanso.");
-    utterance.lang = 'pt-BR';
-    utterance.rate = 1.0;
-    window.speechSynthesis.speak(utterance);
+    playGeminiVoice("Parabéns. O ciclo de estudos foi concluído com sucesso. Bom descanso.");
   };
 
   const handleBlockComplete = () => {

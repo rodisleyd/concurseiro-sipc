@@ -219,14 +219,14 @@ export const geminiService = {
   async textToSpeech(text: string) {
     const model = ai.getGenerativeModel({ model: "gemini-3.1-flash-tts-preview" });
     const result = await model.generateContent({
-      contents: [{ role: "user", parts: [{ text }] }],
+      contents: [{ role: "user", parts: [{ text: `Leia o seguinte texto de forma extremamente natural, humana e com boa entonação em português do Brasil: ${text}` }] }],
       generationConfig: {
         // @ts-ignore
         responseModalities: ["audio"],
         speechConfig: {
           voiceConfig: {
             prebuiltVoiceConfig: {
-              voiceName: "Aoide"
+              voiceName: "Puck"
             }
           }
         }
