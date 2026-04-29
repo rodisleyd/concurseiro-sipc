@@ -1,13 +1,23 @@
 @import "tailwindcss";
 
-@theme {
-  --dark-mode: selector;
-}
-
-@custom-variant dark (&:where(.dark, .dark *));
+/* Override do variant dark para Tailwind v4 usar a classe .dark */
+@variant dark (&:is(.dark, .dark *));
 
 @layer base {
+  :root {
+    color-scheme: light;
+  }
+  
+  .dark {
+    color-scheme: dark;
+  }
+
   body {
     @apply transition-colors duration-300;
+  }
+  
+  /* Fallback garantido para o fundo no modo escuro */
+  .dark body {
+    @apply bg-slate-950 text-white;
   }
 }

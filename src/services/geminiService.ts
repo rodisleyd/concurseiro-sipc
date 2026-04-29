@@ -203,5 +203,16 @@ export const geminiService = {
       }
     });
     return JSON.parse(response.text || "[]");
+  },
+
+  async quickSearch(query: string) {
+    const response = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: `Explique brevemente o termo ou curiosidade: "${query}". Seja muito direto, didático e simples. Responda em no máximo 3 parágrafos curtos. RESPONDA EM PORTUGUÊS DO BRASIL.`,
+      config: {
+        systemInstruction: "Você é um assistente rápido para estudantes de concursos. Sua missão é tirar dúvidas pontuais de forma extremamente clara e concisa."
+      }
+    });
+    return response.text;
   }
 };

@@ -18,14 +18,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const root = window.document.documentElement;
-    const body = window.document.body;
-    
-    root.classList.remove('light', 'dark');
-    body.classList.remove('light', 'dark');
-    
-    root.classList.add(theme);
-    body.classList.add(theme);
-    
+    if (theme === 'dark') {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
     localStorage.setItem('theme', theme);
   }, [theme]);
 
