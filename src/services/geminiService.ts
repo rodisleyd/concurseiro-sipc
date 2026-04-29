@@ -218,16 +218,16 @@ export const geminiService = {
 
   async textToSpeech(text: string) {
     try {
-      // Usando v1beta e o modelo 1.5-flash que é mais estável para multimodal
+      // Usando exatamente o modelo solicitado pelo usuário
       const model = ai.getGenerativeModel({ 
-        model: "gemini-1.5-flash-latest", 
+        model: "gemini-3.1-flash-tts-preview", 
         apiVersion: "v1beta" 
       });
       
       const result = await model.generateContent({
         contents: [{ 
           role: "user", 
-          parts: [{ text: `Aja como um professor atencioso e leia este texto de forma natural e humana em português do Brasil: ${text}` }] 
+          parts: [{ text }] 
         }],
         generationConfig: {
           // @ts-ignore
@@ -235,7 +235,7 @@ export const geminiService = {
           speechConfig: {
             voiceConfig: {
               prebuiltVoiceConfig: {
-                voiceName: "Puck" // Testando Puck que é uma voz masculina mais jovem e natural
+                voiceName: "Aoide" // Voltando para Aoide que é a voz padrão do 3.1 TTS
               }
             }
           }
