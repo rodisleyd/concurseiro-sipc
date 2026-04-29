@@ -1,6 +1,15 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
-const apiKey = (import.meta as any).env?.VITE_GEMINI_API_KEY || (import.meta as any).env?.GEMINI_API_KEY || (process as any).env?.GEMINI_API_KEY || "";
+// Tenta pegar de todas as formas possíveis no Vite
+const apiKey = (import.meta as any).env?.VITE_GEMINI_API_KEY || 
+               (import.meta as any).env?.GEMINI_API_KEY || 
+               (process as any).env?.GEMINI_API_KEY || 
+               "";
+
+if (!apiKey) {
+  console.warn("Aviso: GEMINI_API_KEY não encontrada no ambiente.");
+}
+
 const ai = new GoogleGenAI({ apiKey });
 
 export const geminiService = {

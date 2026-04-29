@@ -132,15 +132,26 @@ export default function PDFUpload({ user, chunk, onGoToGalpao }: { user: Firebas
       const base64Audio = await geminiService.textToSpeech(cleanText);
       
       if (base64Audio) {
-        const audio = new Audio(`data:audio/wav;base64,${base64Audio}`);
+        // Convertendo base64 para Blob (Padrão Spark)
+        const binary = window.atob(base64Audio);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) {
+          bytes[i] = binary.charCodeAt(i);
+        }
+        const blob = new Blob([bytes], { type: 'audio/wav' });
+        const url = URL.createObjectURL(blob);
+        
+        const audio = new Audio(url);
         audioRef.current = audio;
         
         audio.onended = () => {
           setIsPlayingAudio(false);
           audioRef.current = null;
+          URL.revokeObjectURL(url);
         };
 
         audio.onerror = () => {
+          URL.revokeObjectURL(url);
           const utterance = new SpeechSynthesisUtterance(cleanText);
           utterance.lang = 'pt-BR';
           utterance.onend = () => setIsPlayingAudio(false);
