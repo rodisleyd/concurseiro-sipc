@@ -14,7 +14,7 @@ const ai = new GoogleGenAI({ apiKey });
 
 export const geminiService = {
   async generateStudyPlan(subjects: { name: string; weight: number }[], totalHours: number) {
-    const prompt = `Você é um mentor especialista em concursos.
+    const prompt = `Você é um mentor de estudos estratégico e especialista em metodologias de aprendizagem acelerada.
     Gere uma trilha de estudos realista baseada em um ciclo de estudos.
     Total do projeto: ${totalHours} horas.
     Matérias e Pesos: ${JSON.stringify(subjects)}.
@@ -53,16 +53,16 @@ export const geminiService = {
   async explainTopic(topic: string, subject: string) {
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
-      contents: `Explique o tópico "${topic}" no contexto da matéria "${subject}" para um candidato de concurso público no Brasil. Use exemplos práticos. RESPONDA OBRIGATORIAMENTE EM PORTUGUÊS DO BRASIL.`,
+      contents: `Explique o tópico "${topic}" no contexto da matéria "${subject}" para um estudante que busca domínio total do assunto. Use exemplos práticos e analógicos condizentes com a área de estudo. RESPONDA OBRIGATORIAMENTE EM PORTUGUÊS DO BRASIL.`,
       config: {
-        systemInstruction: "Você é um tutor especialista em concursos públicos no Brasil. Explique os conceitos de forma muito clara e concisa em Português."
+        systemInstruction: "Você é um tutor de estudos inteligente e didático. Explique os conceitos de forma muito clara, concisa e adaptada ao contexto da matéria informada."
       }
     });
     return response.text;
   },
 
   async generateQuestionsFromText(text: string, subject: string) {
-    const prompt = `Com base no texto a seguir sobre ${subject}, gere 5 questões de múltipla escolha focadas em modelo de prova de concurso (banca padrão).
+    const prompt = `Com base no texto a seguir sobre ${subject}, gere 5 questões de múltipla escolha focadas em uma avaliação de alto nível (acadêmica ou profissional).
     Escreva TODAS as questões, opções e a explicação final estritamente em PORTUGUÊS DO BRASIL.
     Texto: ${text}`;
 
@@ -93,7 +93,7 @@ export const geminiService = {
   async summarizeMaterial(text: string) {
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
-      contents: `Resuma o material de estudo a seguir e extraia os 5 pontos cruciais que costumam cair em provas.
+      contents: `Resuma o material de estudo a seguir e extraia os 5 pontos cruciais e fundamentais para o domínio total do assunto.
       O resumo deve ser gerado totalmente em PORTUGUÊS DO BRASIL.
       Texto: ${text}`,
       config: {
@@ -163,8 +163,8 @@ export const geminiService = {
   },
 
   async generateQuestionsForSubjects(subjects: string[]) {
-    const prompt = `Gere 5 questões de múltipla escolha de nível concurso público abrangendo os seguintes temas que foram estudados hoje: ${subjects.join(', ')}.
-    As questões devem ser desafiadoras e variadas entre os temas.
+    const prompt = `Gere 5 questões de múltipla escolha de nível avançado abrangendo os seguintes temas que foram estudados hoje: ${subjects.join(', ')}.
+    As questões devem ser desafiadoras e variadas entre os temas para validar o conhecimento real do estudante.
     IMPORTANTE: Retorne a resposta estritamente em PORTUGUÊS DO BRASIL.`;
 
     const response = await ai.models.generateContent({
@@ -220,7 +220,7 @@ export const geminiService = {
       model: "gemini-3-flash-preview",
       contents: `Explique brevemente o termo ou curiosidade: "${query}". Seja muito direto, didático e simples. Responda em no máximo 3 parágrafos curtos. RESPONDA EM PORTUGUÊS DO BRASIL.`,
       config: {
-        systemInstruction: "Você é um assistente rápido para estudantes de concursos. Sua missão é tirar dúvidas pontuais de forma extremamente clara e concisa."
+        systemInstruction: "Você é um assistente de estudos inteligente. Sua missão é tirar dúvidas pontuais de forma extremamente clara, concisa e didática."
       }
     });
     return response.text;

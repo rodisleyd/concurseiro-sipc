@@ -52,7 +52,7 @@ export default function AITutor({ user }: { user: FirebaseUser }) {
     setIsLoading(true);
 
     try {
-      const response = await geminiService.explainTopic(userMessage, 'Concursos Públicos');
+      const response = await geminiService.explainTopic(userMessage, 'Estudos e Aprendizado');
       setMessages(prev => [...prev, { role: 'assistant', content: response || 'Desculpe, não consegui processar sua dúvida.' }]);
     } catch (error) {
       console.error(error);
@@ -123,7 +123,7 @@ export default function AITutor({ user }: { user: FirebaseUser }) {
       y += (splitText.length * 6) + 12;
     });
 
-    doc.save(`estudo-concurseiro-${new Date().getTime()}.pdf`);
+    doc.save(`relatorio-estudo-${new Date().getTime()}.pdf`);
   };
 
   const playAudio = async (text: string, index: number) => {
@@ -389,8 +389,8 @@ export default function AITutor({ user }: { user: FirebaseUser }) {
         <div className="mt-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <span className="text-xs text-gray-400 font-medium">Sugestões:</span>
-            <button onClick={() => setInput("Explique o que é Seguridade Social")} className="text-xs text-indigo-600 hover:underline">O que é Seguridade Social?</button>
-            <button onClick={() => setInput("Como funciona a revisão espaçada?")} className="text-xs text-indigo-600 hover:underline">Revisão espaçada?</button>
+            <button onClick={() => setInput("Como melhorar minha memorização de longo prazo?")} className="text-xs text-indigo-600 hover:underline">Memorização de longo prazo?</button>
+            <button onClick={() => setInput("Explique o conceito de revisão ativa e como aplicar")} className="text-xs text-indigo-600 hover:underline">O que é revisão ativa?</button>
           </div>
           <button 
             onClick={exportToPDF}
