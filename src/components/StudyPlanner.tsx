@@ -348,19 +348,20 @@ export default function StudyPlanner({ user }: { user: FirebaseUser }) {
                           <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">{item.focusArea}</p>
                         </div>
 
-                        {/* Vínculo Fiel com Galpão (Prioridade Identidade Exata) */}
+                        {/* Sincronização Fiel com Galpão (Match Normalizado) */}
                         {(() => {
-                          const fullSubject = item.subject.trim().toLowerCase();
-                          const baseSubject = item.subject.replace(/\s\d+$/, '').trim().toLowerCase();
+                          const normalize = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
+                          const subjectNorm = normalize(item.subject);
                           
-                          if (fullSubject.length < 3) return null;
+                          if (subjectNorm.length < 3) return null;
 
-                          // 1. Agrupa e identifica os materiais
+                          // 1. Agrupa e identifica os materiais do Galpão
                           const materialsMap = galpaoMaterials.reduce((acc, chunk) => {
                             const sId = chunk.sourceId;
                             if (!acc[sId]) {
+                              const cleanFileName = (chunk.fileName || '').replace('.pdf', '');
                               acc[sId] = { 
-                                fileName: (chunk.fileName || '').toLowerCase().replace('.pdf', ''), 
+                                nameNorm: normalize(cleanFileName),
                                 realFileName: chunk.fileName || '',
                                 chunks: [],
                                 lastUpdated: chunk.createdAt || ''
@@ -368,42 +369,40 @@ export default function StudyPlanner({ user }: { user: FirebaseUser }) {
                             }
                             acc[sId].chunks.push(chunk);
                             return acc;
-                          }, {} as Record<string, { fileName: string, realFileName: string, chunks: any[], lastUpdated: string }>);
+                          }, {} as Record<string, { nameNorm: string, realFileName: string, chunks: any[], lastUpdated: string }>);
 
-                          // 2. Sistema de Pontuação Rigoroso
-                          const sortedMaterials = Object.values(materialsMap).map(m => {
-                            let score = 0;
-                            if (m.fileName === fullSubject) score = 100; // Match Perfeito (ex: "Content Marketing 1")
-                            else if (m.fileName === baseSubject) score = 90; // Match Base (ex: "Content Marketing")
-                            else if (m.fileName.includes(baseSubject)) score = (baseSubject.length / m.fileName.length) * 70;
-                            
-                            return { ...m, score };
-                          })
-                          .filter(m => m.score > 20)
-                          .sort((a, b) => {
-                            if (b.score !== a.score) return b.score - a.score;
-                            return b.lastUpdated.localeCompare(a.lastUpdated); // Desempate pelo mais recente
-                          });
+                          // 2. Busca o material que tem o nome IDÊNTICO (normalizado)
+                          const sortedMatches = Object.values(materialsMap)
+                            .map(m => {
+                              let score = 0;
+                              if (m.nameNorm === subjectNorm) score = 100;
+                              else if (m.nameNorm.includes(subjectNorm) || subjectNorm.includes(m.nameNorm)) score = 50;
+                              return { ...m, score };
+                            })
+                            .filter(m => m.score > 0)
+                            .sort((a, b) => {
+                              if (b.score !== a.score) return b.score - a.score;
+                              return b.lastUpdated.localeCompare(a.lastUpdated);
+                            });
 
-                          const bestMatch = sortedMaterials[0];
+                          const bestMatch = sortedMatches[0];
 
                           if (bestMatch) {
                             const relatedChunks = bestMatch.chunks;
-                            const displayChunks = relatedChunks.slice(0, 12);
-
+                            
                             return (
                               <div className="mt-4 space-y-2.5 border-l-2 border-indigo-100 dark:border-indigo-900/30 pl-4">
                                 <div className="mb-2">
                                   <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-500 dark:text-indigo-400 flex items-center gap-2">
                                     <BookOpen className="w-3 h-3" />
-                                    Temas do Material ({relatedChunks.length}):
+                                    Temas do Galpão ({relatedChunks.length}):
                                   </p>
-                                  <p className="text-[9px] text-slate-400 italic truncate max-w-[200px]">
-                                    Arquivo: {bestMatch.realFileName}
+                                  <p className="text-[9px] text-slate-400 italic">
+                                    Vinculado a: {bestMatch.realFileName}
                                   </p>
                                 </div>
                                 
-                                {displayChunks.map((chunk) => (
+                                {relatedChunks.map((chunk) => (
                                   <div 
                                     key={chunk.id} 
                                     className="flex items-center gap-3 group cursor-pointer"
@@ -419,7 +418,7 @@ export default function StudyPlanner({ user }: { user: FirebaseUser }) {
                                     }`}>
                                       {chunk.isStudied && <Check className="w-2.5 h-2.5 stroke-[3]" />}
                                     </div>
-                                    <span className={`text-[11px] font-medium transition-colors truncate ${
+                                    <span className={`text-[11px] font-medium transition-colors ${
                                       chunk.isStudied 
                                         ? 'text-gray-400 dark:text-gray-500 line-through' 
                                         : 'text-gray-600 dark:text-gray-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400'
@@ -428,11 +427,6 @@ export default function StudyPlanner({ user }: { user: FirebaseUser }) {
                                     </span>
                                   </div>
                                 ))}
-                                {relatedChunks.length > 12 && (
-                                  <p className="text-[10px] text-slate-400 italic font-medium pl-1">
-                                    + {relatedChunks.length - 12} temas adicionais...
-                                  </p>
-                                )}
                               </div>
                             );
                           }
