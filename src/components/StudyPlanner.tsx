@@ -348,42 +348,61 @@ export default function StudyPlanner({ user }: { user: FirebaseUser }) {
                           <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">{item.focusArea}</p>
                         </div>
 
-                        {/* Vínculo Fiel com Galpão (Apenas o material correspondente) */}
+                        {/* Vínculo Fiel com Galpão (Prioridade Identidade Exata) */}
                         {(() => {
+                          const fullSubject = item.subject.trim().toLowerCase();
                           const baseSubject = item.subject.replace(/\s\d+$/, '').trim().toLowerCase();
-                          if (baseSubject.length < 3) return null;
+                          
+                          if (fullSubject.length < 3) return null;
 
-                          // 1. Agrupa todos os chunks por Material (sourceId)
+                          // 1. Agrupa e identifica os materiais
                           const materialsMap = galpaoMaterials.reduce((acc, chunk) => {
                             const sId = chunk.sourceId;
-                            if (!acc[sId]) acc[sId] = { fileName: (chunk.fileName || '').toLowerCase().replace('.pdf', ''), chunks: [] };
+                            if (!acc[sId]) {
+                              acc[sId] = { 
+                                fileName: (chunk.fileName || '').toLowerCase().replace('.pdf', ''), 
+                                realFileName: chunk.fileName || '',
+                                chunks: [],
+                                lastUpdated: chunk.createdAt || ''
+                              };
+                            }
                             acc[sId].chunks.push(chunk);
                             return acc;
-                          }, {} as Record<string, { fileName: string, chunks: any[] }>);
+                          }, {} as Record<string, { fileName: string, realFileName: string, chunks: any[], lastUpdated: string }>);
 
-                          // 2. Encontra o ÚNICO material que melhor combina (pontuação de similaridade)
+                          // 2. Sistema de Pontuação Rigoroso
                           const sortedMaterials = Object.values(materialsMap).map(m => {
                             let score = 0;
-                            if (m.fileName === baseSubject) score = 100; // Match exato
-                            else if (m.fileName.includes(baseSubject)) score = (baseSubject.length / m.fileName.length) * 80;
-                            else if (baseSubject.includes(m.fileName)) score = (m.fileName.length / baseSubject.length) * 80;
+                            if (m.fileName === fullSubject) score = 100; // Match Perfeito (ex: "Content Marketing 1")
+                            else if (m.fileName === baseSubject) score = 90; // Match Base (ex: "Content Marketing")
+                            else if (m.fileName.includes(baseSubject)) score = (baseSubject.length / m.fileName.length) * 70;
+                            
                             return { ...m, score };
-                          }).filter(m => m.score > 10).sort((a, b) => b.score - a.score);
+                          })
+                          .filter(m => m.score > 20)
+                          .sort((a, b) => {
+                            if (b.score !== a.score) return b.score - a.score;
+                            return b.lastUpdated.localeCompare(a.lastUpdated); // Desempate pelo mais recente
+                          });
 
                           const bestMatch = sortedMaterials[0];
 
                           if (bestMatch) {
                             const relatedChunks = bestMatch.chunks;
-                            // No cronograma, mostramos todos se forem poucos, ou limitamos a visualização
-                            const displayChunks = relatedChunks.slice(0, 10);
-                            const hasMore = relatedChunks.length > 10;
+                            const displayChunks = relatedChunks.slice(0, 12);
 
                             return (
                               <div className="mt-4 space-y-2.5 border-l-2 border-indigo-100 dark:border-indigo-900/30 pl-4">
-                                <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-400 dark:text-indigo-500 mb-1 flex items-center gap-2">
-                                  <BookOpen className="w-3 h-3" />
-                                  Temas da Apostila ({relatedChunks.length}):
-                                </p>
+                                <div className="mb-2">
+                                  <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-500 dark:text-indigo-400 flex items-center gap-2">
+                                    <BookOpen className="w-3 h-3" />
+                                    Temas do Material ({relatedChunks.length}):
+                                  </p>
+                                  <p className="text-[9px] text-slate-400 italic truncate max-w-[200px]">
+                                    Arquivo: {bestMatch.realFileName}
+                                  </p>
+                                </div>
+                                
                                 {displayChunks.map((chunk) => (
                                   <div 
                                     key={chunk.id} 
@@ -409,9 +428,9 @@ export default function StudyPlanner({ user }: { user: FirebaseUser }) {
                                     </span>
                                   </div>
                                 ))}
-                                {hasMore && (
+                                {relatedChunks.length > 12 && (
                                   <p className="text-[10px] text-slate-400 italic font-medium pl-1">
-                                    + {relatedChunks.length - 10} temas adicionais...
+                                    + {relatedChunks.length - 12} temas adicionais...
                                   </p>
                                 )}
                               </div>
