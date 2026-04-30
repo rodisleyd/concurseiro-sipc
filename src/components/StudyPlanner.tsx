@@ -350,14 +350,17 @@ export default function StudyPlanner({ user }: { user: FirebaseUser }) {
 
                         {/* Vínculo com Galpão */}
                         {(() => {
-                          const subjectLower = item.subject.toLowerCase();
+                          // Remove números no final do nome da matéria (ex: "Marketing 1" vira "Marketing")
+                          const baseSubject = item.subject.replace(/\s\d+$/, '').toLowerCase();
+                          
                           const relatedChunks = galpaoMaterials.filter(c => {
                             const titleLower = c.title.toLowerCase();
                             const fileNameLower = (c.fileName || '').toLowerCase().replace('.pdf', '');
-                            return titleLower.includes(subjectLower) || 
-                                   subjectLower.includes(titleLower) ||
-                                   fileNameLower.includes(subjectLower) ||
-                                   subjectLower.includes(fileNameLower);
+                            
+                            return titleLower.includes(baseSubject) || 
+                                   baseSubject.includes(titleLower) ||
+                                   fileNameLower.includes(baseSubject) ||
+                                   baseSubject.includes(fileNameLower);
                           });
 
                           if (relatedChunks.length > 0) {
