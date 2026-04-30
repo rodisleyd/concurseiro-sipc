@@ -437,10 +437,6 @@ export default function StudyPlanner({ user }: { user: FirebaseUser }) {
                         })()}
                       </div>
                     </div>
-                    <div className="text-right shrink-0 ml-4">
-                      <div className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{item.durationMinutes} min</div>
-                      <div className="text-xs text-gray-400 dark:text-gray-500">Bloco Sugerido</div>
-                    </div>
                   </motion.div>
                 ))}
               </div>
