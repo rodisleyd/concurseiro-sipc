@@ -348,36 +348,36 @@ export default function StudyPlanner({ user }: { user: FirebaseUser }) {
                           <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">{item.focusArea}</p>
                         </div>
 
-                        {/* Vínculo com Galpão */}
+                        {/* Vínculo com Galpão (Melhor Correspondência) */}
                         {(() => {
                           const baseSubject = item.subject.replace(/\s\d+$/, '').trim().toLowerCase();
-                          if (baseSubject.length < 2) return null;
+                          if (baseSubject.length < 3) return null;
 
-                          // Busca mais rigorosa: tenta encontrar o termo como palavra inteira ou match forte no arquivo
-                          const relatedChunks = galpaoMaterials.filter(c => {
-                            const titleLower = c.title.toLowerCase();
-                            const fileNameLower = (c.fileName || '').toLowerCase().replace('.pdf', '');
-                            
-                            // Se for sigla curta (ex: EDH), exige match mais exato
-                            if (baseSubject.length <= 3) {
-                              const words = titleLower.split(/[\s\-_/]+/);
-                              const fileWords = fileNameLower.split(/[\s\-_/]+/);
-                              return words.includes(baseSubject) || fileWords.includes(baseSubject);
-                            }
+                          // 1. Agrupa todos os chunks por Material (sourceId)
+                          const materialsMap = galpaoMaterials.reduce((acc, chunk) => {
+                            const sId = chunk.sourceId;
+                            if (!acc[sId]) acc[sId] = { fileName: (chunk.fileName || '').toLowerCase(), chunks: [] };
+                            acc[sId].chunks.push(chunk);
+                            return acc;
+                          }, {} as Record<string, { fileName: string, chunks: any[] }>);
 
-                            return titleLower.includes(baseSubject) || fileNameLower.includes(baseSubject);
+                          // 2. Encontra o material que melhor combina com a matéria
+                          const bestMatchMaterial = Object.values(materialsMap).find(m => {
+                            const name = m.fileName.replace('.pdf', '');
+                            // Match exato ou o nome do arquivo contém a matéria de forma proeminente
+                            return name === baseSubject || name.includes(baseSubject) || baseSubject.includes(name);
                           });
 
-                          if (relatedChunks.length > 0) {
-                            // Limita a exibição para não quebrar o layout
-                            const displayChunks = relatedChunks.slice(0, 8);
-                            const hasMore = relatedChunks.length > 8;
+                          if (bestMatchMaterial) {
+                            const relatedChunks = bestMatchMaterial.chunks;
+                            const displayChunks = relatedChunks.slice(0, 6);
+                            const hasMore = relatedChunks.length > 6;
 
                             return (
                               <div className="mt-4 space-y-2.5 border-l-2 border-indigo-100 dark:border-indigo-900/30 pl-4">
                                 <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-400 dark:text-indigo-500 mb-1 flex items-center gap-2">
                                   <BookOpen className="w-3 h-3" />
-                                  Conteúdo Relacionado ({relatedChunks.length}):
+                                  Tópicos do Material ({relatedChunks.length}):
                                 </p>
                                 {displayChunks.map((chunk) => (
                                   <div 
@@ -406,7 +406,7 @@ export default function StudyPlanner({ user }: { user: FirebaseUser }) {
                                 ))}
                                 {hasMore && (
                                   <p className="text-[10px] text-slate-400 italic font-medium pl-1">
-                                    + {relatedChunks.length - 8} tópicos ocultos...
+                                    + {relatedChunks.length - 6} tópicos deste material...
                                   </p>
                                 )}
                               </div>
