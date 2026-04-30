@@ -250,8 +250,15 @@ export const studyService = {
   async updateGalpaoMaterialName(userId: string, sourceId: string, newName: string) {
     const path = `users/${userId}/galpao [Batch Name Update]`;
     try {
-      const q = query(collection(db, 'users', userId, 'galpao'), where('sourceId', '==', sourceId));
+      // Tenta buscar tanto como string quanto como número, para garantir compatibilidade com dados antigos
+      const q = query(collection(db, 'users', userId, 'galpao'), where('sourceId', 'in', [sourceId, Number(sourceId)]));
       const snapshot = await getDocs(q);
+      
+      if (snapshot.empty) {
+        console.warn("Nenhum documento encontrado para o sourceId:", sourceId);
+        return;
+      }
+
       const batch = writeBatch(db);
       snapshot.docs.forEach((doc) => {
         batch.update(doc.ref, { fileName: newName });

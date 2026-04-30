@@ -109,11 +109,16 @@ export default function Galpao({ user, onStudyChunk }: { user: FirebaseUser, onS
     }
     
     try {
+      setIsProcessing(true);
+      setLoadingMsg('Renomeando material...');
       await studyService.updateGalpaoMaterialName(user.uid, sourceId, newName.trim());
       setEditingSourceId(null);
       showToast('Material renomeado!', 'success');
     } catch (err) {
       showToast('Erro ao renomear o material.', 'error');
+    } finally {
+      setIsProcessing(false);
+      setLoadingMsg('');
     }
   };
 
