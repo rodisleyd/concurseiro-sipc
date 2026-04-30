@@ -233,5 +233,17 @@ export const studyService = {
     } catch (error) {
       handleFirestoreError(error, OperationType.DELETE, path);
     }
+  },
+  
+  async toggleChunkStudied(userId: string, chunkId: string, isStudied: boolean) {
+    const path = `users/${userId}/galpao/${chunkId}`;
+    try {
+      await updateDoc(doc(db, 'users', userId, 'galpao', chunkId), {
+        isStudied,
+        studiedAt: isStudied ? new Date().toISOString() : null
+      });
+    } catch (error) {
+      handleFirestoreError(error, OperationType.UPDATE, path);
+    }
   }
 };

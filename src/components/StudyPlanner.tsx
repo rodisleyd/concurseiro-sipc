@@ -11,7 +11,9 @@ import {
   Weight,
   AlertCircle,
   Printer,
-  CheckCircle2
+  CheckCircle2,
+  Check,
+  BookOpen
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useToast } from './Toast';
@@ -33,6 +35,7 @@ export default function StudyPlanner({ user }: { user: FirebaseUser }) {
   const [dailyGoal, setDailyGoal] = useState(2);
   const [isGenerating, setIsGenerating] = useState(false);
   const [plan, setPlan] = useState<any[]>([]);
+  const [galpaoMaterials, setGalpaoMaterials] = useState<any[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const isDataLoaded = useRef(false);
 
@@ -47,10 +50,17 @@ export default function StudyPlanner({ user }: { user: FirebaseUser }) {
         setPlan(fixedPlan);
       }
       
+      // Inscreve para pegar materiais do galpão para vincular ao cronograma
+      const unsubscribeGalpao = studyService.subscribeToGalpao(user.uid, (materials) => {
+        setGalpaoMaterials(materials);
+      });
+      
       // Dá tempo de todos os hooks de estado se estabilizarem antes de ativar o monitoramento
       setTimeout(() => {
         isDataLoaded.current = true;
       }, 500);
+
+      return () => unsubscribeGalpao();
     };
     loadData();
   }, [user.uid]);
@@ -324,7 +334,7 @@ export default function StudyPlanner({ user }: { user: FirebaseUser }) {
                     <div className="flex items-center gap-4">
                       <button 
                         onClick={() => toggleBlockCompletion(i)}
-                        className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${
+                        className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all shrink-0 ${
                           item.completed 
                             ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-100 dark:shadow-none' 
                             : 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-200 dark:hover:bg-indigo-900/70'
@@ -332,12 +342,69 @@ export default function StudyPlanner({ user }: { user: FirebaseUser }) {
                       >
                         {item.completed ? <CheckCircle2 className="w-6 h-6" /> : i + 1}
                       </button>
-                      <div className={item.completed ? 'opacity-50 line-through' : ''}>
-                        <h4 className="font-bold text-gray-900 dark:text-white">{item.subject}</h4>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">{item.focusArea}</p>
+                      <div className="flex-1">
+                        <div className={item.completed ? 'opacity-50 line-through' : ''}>
+                          <h4 className="font-bold text-gray-900 dark:text-white">{item.subject}</h4>
+                          <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">{item.focusArea}</p>
+                        </div>
+
+                        {/* Vínculo com Galpão */}
+                        {(() => {
+                          const subjectLower = item.subject.toLowerCase();
+                          const relatedChunks = galpaoMaterials.filter(c => {
+                            const titleLower = c.title.toLowerCase();
+                            const fileNameLower = (c.fileName || '').toLowerCase().replace('.pdf', '');
+                            return titleLower.includes(subjectLower) || 
+                                   subjectLower.includes(titleLower) ||
+                                   fileNameLower.includes(subjectLower) ||
+                                   subjectLower.includes(fileNameLower);
+                          });
+
+                          if (relatedChunks.length > 0) {
+                            return (
+                              <div className="mt-4 space-y-2.5 border-l-2 border-indigo-100 dark:border-indigo-900/30 pl-4">
+                                <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-400 dark:text-indigo-500 mb-1 flex items-center gap-2">
+                                  <BookOpen className="w-3 h-3" />
+                                  Aulas vinculadas do Galpão:
+                                </p>
+                                {relatedChunks.map((chunk) => (
+                                  <div 
+                                    key={chunk.id} 
+                                    className="flex items-center gap-3 group cursor-pointer"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      studyService.toggleChunkStudied(user.uid, chunk.id, !chunk.isStudied);
+                                    }}
+                                  >
+                                    <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${
+                                      chunk.isStudied 
+                                        ? 'bg-emerald-500 border-emerald-500 text-white' 
+                                        : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 group-hover:border-indigo-400'
+                                    }`}>
+                                      {chunk.isStudied && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                                    </div>
+                                    <div className="flex flex-col">
+                                      <span className={`text-xs font-medium transition-colors ${
+                                        chunk.isStudied 
+                                          ? 'text-gray-400 dark:text-gray-500 line-through' 
+                                          : 'text-gray-700 dark:text-gray-300 group-hover:text-indigo-600 dark:group-hover:text-indigo-400'
+                                      }`}>
+                                        {chunk.title}
+                                      </span>
+                                      {chunk.processedAt && !chunk.isStudied && (
+                                        <span className="text-[9px] text-emerald-600 dark:text-emerald-500 font-bold">Conteúdo Disponível</span>
+                                      )}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            );
+                          }
+                          return null;
+                        })()}
                       </div>
                     </div>
-                    <div className="text-right">
+                    <div className="text-right shrink-0 ml-4">
                       <div className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{item.durationMinutes} min</div>
                       <div className="text-xs text-gray-400 dark:text-gray-500">Bloco Sugerido</div>
                     </div>
