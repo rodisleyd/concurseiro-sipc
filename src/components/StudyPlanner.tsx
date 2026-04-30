@@ -348,7 +348,7 @@ export default function StudyPlanner({ user }: { user: FirebaseUser }) {
                           <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">{item.focusArea}</p>
                         </div>
 
-                        {/* Vínculo com Galpão (Melhor Correspondência) */}
+                        {/* Vínculo Fiel com Galpão (Apenas o material correspondente) */}
                         {(() => {
                           const baseSubject = item.subject.replace(/\s\d+$/, '').trim().toLowerCase();
                           if (baseSubject.length < 3) return null;
@@ -356,28 +356,33 @@ export default function StudyPlanner({ user }: { user: FirebaseUser }) {
                           // 1. Agrupa todos os chunks por Material (sourceId)
                           const materialsMap = galpaoMaterials.reduce((acc, chunk) => {
                             const sId = chunk.sourceId;
-                            if (!acc[sId]) acc[sId] = { fileName: (chunk.fileName || '').toLowerCase(), chunks: [] };
+                            if (!acc[sId]) acc[sId] = { fileName: (chunk.fileName || '').toLowerCase().replace('.pdf', ''), chunks: [] };
                             acc[sId].chunks.push(chunk);
                             return acc;
                           }, {} as Record<string, { fileName: string, chunks: any[] }>);
 
-                          // 2. Encontra o material que melhor combina com a matéria
-                          const bestMatchMaterial = Object.values(materialsMap).find(m => {
-                            const name = m.fileName.replace('.pdf', '');
-                            // Match exato ou o nome do arquivo contém a matéria de forma proeminente
-                            return name === baseSubject || name.includes(baseSubject) || baseSubject.includes(name);
-                          });
+                          // 2. Encontra o ÚNICO material que melhor combina (pontuação de similaridade)
+                          const sortedMaterials = Object.values(materialsMap).map(m => {
+                            let score = 0;
+                            if (m.fileName === baseSubject) score = 100; // Match exato
+                            else if (m.fileName.includes(baseSubject)) score = (baseSubject.length / m.fileName.length) * 80;
+                            else if (baseSubject.includes(m.fileName)) score = (m.fileName.length / baseSubject.length) * 80;
+                            return { ...m, score };
+                          }).filter(m => m.score > 10).sort((a, b) => b.score - a.score);
 
-                          if (bestMatchMaterial) {
-                            const relatedChunks = bestMatchMaterial.chunks;
-                            const displayChunks = relatedChunks.slice(0, 6);
-                            const hasMore = relatedChunks.length > 6;
+                          const bestMatch = sortedMaterials[0];
+
+                          if (bestMatch) {
+                            const relatedChunks = bestMatch.chunks;
+                            // No cronograma, mostramos todos se forem poucos, ou limitamos a visualização
+                            const displayChunks = relatedChunks.slice(0, 10);
+                            const hasMore = relatedChunks.length > 10;
 
                             return (
                               <div className="mt-4 space-y-2.5 border-l-2 border-indigo-100 dark:border-indigo-900/30 pl-4">
                                 <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-400 dark:text-indigo-500 mb-1 flex items-center gap-2">
                                   <BookOpen className="w-3 h-3" />
-                                  Tópicos do Material ({relatedChunks.length}):
+                                  Temas da Apostila ({relatedChunks.length}):
                                 </p>
                                 {displayChunks.map((chunk) => (
                                   <div 
@@ -406,7 +411,7 @@ export default function StudyPlanner({ user }: { user: FirebaseUser }) {
                                 ))}
                                 {hasMore && (
                                   <p className="text-[10px] text-slate-400 italic font-medium pl-1">
-                                    + {relatedChunks.length - 6} tópicos deste material...
+                                    + {relatedChunks.length - 10} temas adicionais...
                                   </p>
                                 )}
                               </div>
