@@ -245,5 +245,20 @@ export const studyService = {
     } catch (error) {
       handleFirestoreError(error, OperationType.UPDATE, path);
     }
+  },
+
+  async updateGalpaoMaterialName(userId: string, sourceId: string, newName: string) {
+    const path = `users/${userId}/galpao [Batch Name Update]`;
+    try {
+      const q = query(collection(db, 'users', userId, 'galpao'), where('sourceId', '==', sourceId));
+      const snapshot = await getDocs(q);
+      const batch = writeBatch(db);
+      snapshot.docs.forEach((doc) => {
+        batch.update(doc.ref, { fileName: newName });
+      });
+      await batch.commit();
+    } catch (error) {
+      handleFirestoreError(error, OperationType.UPDATE, path);
+    }
   }
 };

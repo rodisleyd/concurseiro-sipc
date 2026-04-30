@@ -10,7 +10,9 @@ import {
   Loader2,
   CheckCircle2,
   Archive,
-  Trash2
+  Trash2,
+  Pencil,
+  Check
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import * as pdfjsLib from 'pdfjs-dist';
@@ -23,6 +25,8 @@ export default function Galpao({ user, onStudyChunk }: { user: FirebaseUser, onS
   const [materials, setMaterials] = useState<any[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [loadingMsg, setLoadingMsg] = useState('');
+  const [editingSourceId, setEditingSourceId] = useState<string | null>(null);
+  const [newName, setNewName] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -97,6 +101,21 @@ export default function Galpao({ user, onStudyChunk }: { user: FirebaseUser, onS
       showToast('Erro ao excluir a apostila.', 'error');
     }
   };
+  
+  const handleRenameMaterial = async (sourceId: string) => {
+    if (!newName.trim()) {
+      setEditingSourceId(null);
+      return;
+    }
+    
+    try {
+      await studyService.updateGalpaoMaterialName(user.uid, sourceId, newName.trim());
+      setEditingSourceId(null);
+      showToast('Material renomeado!', 'success');
+    } catch (err) {
+      showToast('Erro ao renomear o material.', 'error');
+    }
+  };
 
   // Agrupar materiais pelo SourceID
   const groupedMaterials = materials.reduce((acc, curr) => {
@@ -155,9 +174,40 @@ export default function Galpao({ user, onStudyChunk }: { user: FirebaseUser, onS
                   <FileText className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-bold text-gray-900 dark:text-white truncate" title={chunks[0].fileName}>
-                    {chunks[0].fileName}
-                  </h3>
+                  {editingSourceId === sourceId ? (
+                    <div className="flex items-center gap-2">
+                      <input 
+                        autoFocus
+                        type="text"
+                        value={newName}
+                        onChange={(e) => setNewName(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleRenameMaterial(sourceId)}
+                        className="flex-1 px-2 py-1 text-sm bg-slate-50 dark:bg-slate-800 border border-indigo-400 dark:border-indigo-500 rounded-md outline-none text-gray-900 dark:text-white"
+                      />
+                      <button 
+                        onClick={() => handleRenameMaterial(sourceId)}
+                        className="p-1.5 bg-emerald-500 text-white rounded-md hover:bg-emerald-600 transition-colors"
+                      >
+                        <Check className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 group/title">
+                      <h3 className="font-bold text-gray-900 dark:text-white truncate" title={chunks[0].fileName}>
+                        {chunks[0].fileName}
+                      </h3>
+                      <button 
+                        onClick={() => {
+                          setEditingSourceId(sourceId);
+                          setNewName(chunks[0].fileName);
+                        }}
+                        className="p-1 text-slate-300 hover:text-indigo-600 transition-colors opacity-0 group-hover/title:opacity-100"
+                        title="Renomear Material"
+                      >
+                        <Pencil className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  )}
                   {(() => {
                     const processed = chunks.filter(c => c.processedAt).length;
                     const total = chunks.length;
@@ -176,13 +226,15 @@ export default function Galpao({ user, onStudyChunk }: { user: FirebaseUser, onS
                     );
                   })()}
                 </div>
-                <button 
-                  onClick={() => handleDeleteMaterial(sourceId, chunks[0].fileName)}
-                  className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
-                  title="Excluir Apostila Inteira"
-                >
-                  <Trash2 className="w-5 h-5" />
-                </button>
+                {editingSourceId !== sourceId && (
+                  <button 
+                    onClick={() => handleDeleteMaterial(sourceId, chunks[0].fileName)}
+                    className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                    title="Excluir Apostila Inteira"
+                  >
+                    <Trash2 className="w-5 h-5" />
+                  </button>
+                )}
               </div>
               
               <div className="space-y-3 mt-4">
