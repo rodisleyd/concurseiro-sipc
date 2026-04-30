@@ -13,9 +13,10 @@ import {
   Printer,
   CheckCircle2,
   Check,
-  BookOpen
+  BookOpen,
+  ChevronDown
 } from 'lucide-react';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { useToast } from './Toast';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -37,6 +38,7 @@ export default function StudyPlanner({ user }: { user: FirebaseUser }) {
   const [plan, setPlan] = useState<any[]>([]);
   const [galpaoMaterials, setGalpaoMaterials] = useState<any[]>([]);
   const [isSaving, setIsSaving] = useState(false);
+  const [expandedBlocks, setExpandedBlocks] = useState<number[]>([]);
   const isDataLoaded = useRef(false);
 
   useEffect(() => {
@@ -355,7 +357,6 @@ export default function StudyPlanner({ user }: { user: FirebaseUser }) {
                           
                           if (subjectNorm.length < 3) return null;
 
-                          // 1. Agrupa e identifica os materiais do Galpão
                           const materialsMap = galpaoMaterials.reduce((acc, chunk) => {
                             const sId = chunk.sourceId;
                             if (!acc[sId]) {
@@ -371,7 +372,6 @@ export default function StudyPlanner({ user }: { user: FirebaseUser }) {
                             return acc;
                           }, {} as Record<string, { nameNorm: string, realFileName: string, chunks: any[], lastUpdated: string }>);
 
-                          // 2. Busca o material que tem o nome IDÊNTICO (normalizado)
                           const sortedMatches = Object.values(materialsMap)
                             .map(m => {
                               let score = 0;
@@ -386,54 +386,71 @@ export default function StudyPlanner({ user }: { user: FirebaseUser }) {
                             });
 
                           const bestMatch = sortedMatches[0];
+                          if (!bestMatch) return null;
 
-                          if (bestMatch) {
-                            const relatedChunks = bestMatch.chunks;
-                            
-                            return (
-                              <div className="mt-4 space-y-2.5 border-l-2 border-indigo-100 dark:border-indigo-900/30 pl-4">
-                                <div className="mb-2">
-                                  <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-500 dark:text-indigo-400 flex items-center gap-2">
-                                    <BookOpen className="w-3 h-3" />
-                                    Temas do Galpão ({relatedChunks.length}):
-                                  </p>
-                                  <p className="text-[9px] text-slate-400 italic">
-                                    Vinculado a: {bestMatch.realFileName}
-                                  </p>
+                          const isExpanded = expandedBlocks.includes(i);
+                          const relatedChunks = bestMatch.chunks;
+
+                          return (
+                            <div className="mt-4">
+                              <button 
+                                onClick={() => setExpandedBlocks(prev => 
+                                  prev.includes(i) ? prev.filter(idx => idx !== i) : [...prev, i]
+                                )}
+                                className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-indigo-500 dark:text-indigo-400 hover:text-indigo-600 transition-colors mb-2"
+                              >
+                                <div className={`transform transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}>
+                                  <ChevronDown className="w-3.5 h-3.5" />
                                 </div>
-                                
-                                {relatedChunks.map((chunk) => (
-                                  <div 
-                                    key={chunk.id} 
-                                    className="flex items-center justify-between group cursor-pointer"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      studyService.toggleChunkStudied(user.uid, chunk.id, !chunk.isStudied);
-                                    }}
+                                <BookOpen className="w-3 h-3" />
+                                Temas do Galpão ({relatedChunks.length})
+                                <span className="text-[9px] text-slate-400 normal-case font-medium ml-2 opacity-60">
+                                  Vinculado a: {bestMatch.realFileName}
+                                </span>
+                              </button>
+
+                              <AnimatePresence>
+                                {isExpanded && (
+                                  <motion.div 
+                                    initial={{ height: 0, opacity: 0 }}
+                                    animate={{ height: 'auto', opacity: 1 }}
+                                    exit={{ height: 0, opacity: 0 }}
+                                    transition={{ duration: 0.25, ease: "easeInOut" }}
+                                    className="overflow-hidden border-l-2 border-indigo-100 dark:border-indigo-900/30 pl-4 space-y-2.5"
                                   >
-                                    <div className="flex items-center gap-3 flex-1 min-w-0">
-                                      <div className={`w-4 h-4 rounded border flex items-center justify-center transition-all shrink-0 ${
-                                        chunk.isStudied 
-                                          ? 'bg-emerald-500 border-emerald-500 text-white' 
-                                          : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 group-hover:border-indigo-400'
-                                      }`}>
-                                        {chunk.isStudied && <Check className="w-2.5 h-2.5 stroke-[3]" />}
+                                    {relatedChunks.map((chunk) => (
+                                      <div 
+                                        key={chunk.id} 
+                                        className="flex items-center justify-between group cursor-pointer py-0.5"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          studyService.toggleChunkStudied(user.uid, chunk.id, !chunk.isStudied);
+                                        }}
+                                      >
+                                        <div className="flex items-center gap-3 flex-1 min-w-0">
+                                          <div className={`w-4 h-4 rounded border flex items-center justify-center transition-all shrink-0 ${
+                                            chunk.isStudied 
+                                              ? 'bg-emerald-500 border-emerald-500 text-white' 
+                                              : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 group-hover:border-indigo-400'
+                                          }`}>
+                                            {chunk.isStudied && <Check className="w-2.5 h-2.5 stroke-[3]" />}
+                                          </div>
+                                          <span className={`text-[11px] font-medium transition-colors truncate ${
+                                            chunk.isStudied 
+                                              ? 'text-gray-400 dark:text-gray-500 line-through' 
+                                              : 'text-gray-600 dark:text-gray-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400'
+                                          }`}>
+                                            {chunk.title}
+                                          </span>
+                                        </div>
+                                        <span className="text-[10px] font-bold text-slate-400 dark:text-slate-600 ml-4 tabular-nums">30 min</span>
                                       </div>
-                                      <span className={`text-[11px] font-medium transition-colors truncate ${
-                                        chunk.isStudied 
-                                          ? 'text-gray-400 dark:text-gray-500 line-through' 
-                                          : 'text-gray-600 dark:text-gray-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400'
-                                      }`}>
-                                        {chunk.title}
-                                      </span>
-                                    </div>
-                                    <span className="text-[10px] font-bold text-slate-400 dark:text-slate-600 ml-4 tabular-nums">30 min</span>
-                                  </div>
-                                ))}
-                              </div>
-                            );
-                          }
-                          return null;
+                                    ))}
+                                  </motion.div>
+                                )}
+                              </AnimatePresence>
+                            </div>
+                          );
                         })()}
                       </div>
                     </div>
