@@ -350,27 +350,36 @@ export default function StudyPlanner({ user }: { user: FirebaseUser }) {
 
                         {/* Vínculo com Galpão */}
                         {(() => {
-                          // Remove números no final do nome da matéria (ex: "Marketing 1" vira "Marketing")
-                          const baseSubject = item.subject.replace(/\s\d+$/, '').toLowerCase();
-                          
+                          const baseSubject = item.subject.replace(/\s\d+$/, '').trim().toLowerCase();
+                          if (baseSubject.length < 2) return null;
+
+                          // Busca mais rigorosa: tenta encontrar o termo como palavra inteira ou match forte no arquivo
                           const relatedChunks = galpaoMaterials.filter(c => {
                             const titleLower = c.title.toLowerCase();
                             const fileNameLower = (c.fileName || '').toLowerCase().replace('.pdf', '');
                             
-                            return titleLower.includes(baseSubject) || 
-                                   baseSubject.includes(titleLower) ||
-                                   fileNameLower.includes(baseSubject) ||
-                                   baseSubject.includes(fileNameLower);
+                            // Se for sigla curta (ex: EDH), exige match mais exato
+                            if (baseSubject.length <= 3) {
+                              const words = titleLower.split(/[\s\-_/]+/);
+                              const fileWords = fileNameLower.split(/[\s\-_/]+/);
+                              return words.includes(baseSubject) || fileWords.includes(baseSubject);
+                            }
+
+                            return titleLower.includes(baseSubject) || fileNameLower.includes(baseSubject);
                           });
 
                           if (relatedChunks.length > 0) {
+                            // Limita a exibição para não quebrar o layout
+                            const displayChunks = relatedChunks.slice(0, 8);
+                            const hasMore = relatedChunks.length > 8;
+
                             return (
                               <div className="mt-4 space-y-2.5 border-l-2 border-indigo-100 dark:border-indigo-900/30 pl-4">
                                 <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-400 dark:text-indigo-500 mb-1 flex items-center gap-2">
                                   <BookOpen className="w-3 h-3" />
-                                  Aulas vinculadas do Galpão:
+                                  Conteúdo Relacionado ({relatedChunks.length}):
                                 </p>
-                                {relatedChunks.map((chunk) => (
+                                {displayChunks.map((chunk) => (
                                   <div 
                                     key={chunk.id} 
                                     className="flex items-center gap-3 group cursor-pointer"
@@ -379,27 +388,27 @@ export default function StudyPlanner({ user }: { user: FirebaseUser }) {
                                       studyService.toggleChunkStudied(user.uid, chunk.id, !chunk.isStudied);
                                     }}
                                   >
-                                    <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${
+                                    <div className={`w-4 h-4 rounded border flex items-center justify-center transition-all shrink-0 ${
                                       chunk.isStudied 
                                         ? 'bg-emerald-500 border-emerald-500 text-white' 
                                         : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 group-hover:border-indigo-400'
                                     }`}>
-                                      {chunk.isStudied && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                                      {chunk.isStudied && <Check className="w-2.5 h-2.5 stroke-[3]" />}
                                     </div>
-                                    <div className="flex flex-col">
-                                      <span className={`text-xs font-medium transition-colors ${
-                                        chunk.isStudied 
-                                          ? 'text-gray-400 dark:text-gray-500 line-through' 
-                                          : 'text-gray-700 dark:text-gray-300 group-hover:text-indigo-600 dark:group-hover:text-indigo-400'
-                                      }`}>
-                                        {chunk.title}
-                                      </span>
-                                      {chunk.processedAt && !chunk.isStudied && (
-                                        <span className="text-[9px] text-emerald-600 dark:text-emerald-500 font-bold">Conteúdo Disponível</span>
-                                      )}
-                                    </div>
+                                    <span className={`text-[11px] font-medium transition-colors truncate ${
+                                      chunk.isStudied 
+                                        ? 'text-gray-400 dark:text-gray-500 line-through' 
+                                        : 'text-gray-600 dark:text-gray-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400'
+                                    }`}>
+                                      {chunk.title}
+                                    </span>
                                   </div>
                                 ))}
+                                {hasMore && (
+                                  <p className="text-[10px] text-slate-400 italic font-medium pl-1">
+                                    + {relatedChunks.length - 8} tópicos ocultos...
+                                  </p>
+                                )}
                               </div>
                             );
                           }
