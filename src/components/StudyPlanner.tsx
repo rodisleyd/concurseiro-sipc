@@ -405,26 +405,29 @@ export default function StudyPlanner({ user }: { user: FirebaseUser }) {
                                 {relatedChunks.map((chunk) => (
                                   <div 
                                     key={chunk.id} 
-                                    className="flex items-center gap-3 group cursor-pointer"
+                                    className="flex items-center justify-between group cursor-pointer"
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       studyService.toggleChunkStudied(user.uid, chunk.id, !chunk.isStudied);
                                     }}
                                   >
-                                    <div className={`w-4 h-4 rounded border flex items-center justify-center transition-all shrink-0 ${
-                                      chunk.isStudied 
-                                        ? 'bg-emerald-500 border-emerald-500 text-white' 
-                                        : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 group-hover:border-indigo-400'
-                                    }`}>
-                                      {chunk.isStudied && <Check className="w-2.5 h-2.5 stroke-[3]" />}
+                                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                                      <div className={`w-4 h-4 rounded border flex items-center justify-center transition-all shrink-0 ${
+                                        chunk.isStudied 
+                                          ? 'bg-emerald-500 border-emerald-500 text-white' 
+                                          : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 group-hover:border-indigo-400'
+                                      }`}>
+                                        {chunk.isStudied && <Check className="w-2.5 h-2.5 stroke-[3]" />}
+                                      </div>
+                                      <span className={`text-[11px] font-medium transition-colors truncate ${
+                                        chunk.isStudied 
+                                          ? 'text-gray-400 dark:text-gray-500 line-through' 
+                                          : 'text-gray-600 dark:text-gray-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400'
+                                      }`}>
+                                        {chunk.title}
+                                      </span>
                                     </div>
-                                    <span className={`text-[11px] font-medium transition-colors ${
-                                      chunk.isStudied 
-                                        ? 'text-gray-400 dark:text-gray-500 line-through' 
-                                        : 'text-gray-600 dark:text-gray-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400'
-                                    }`}>
-                                      {chunk.title}
-                                    </span>
+                                    <span className="text-[10px] font-bold text-slate-400 dark:text-slate-600 ml-4 tabular-nums">30 min</span>
                                   </div>
                                 ))}
                               </div>
