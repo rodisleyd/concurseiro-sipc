@@ -13,7 +13,9 @@ import {
   Network,
   Save,
   Loader2,
-  Archive
+  Archive,
+  Copy,
+  Check
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useToast } from './Toast';
@@ -30,6 +32,17 @@ export default function PDFUpload({ user, chunk, onGoToGalpao }: { user: Firebas
 
   // Question State
   const [answers, setAnswers] = useState<Record<number, number>>({});
+  
+  // Copy State
+  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+
+  const handleCopy = (text: string, index: number) => {
+    navigator.clipboard.writeText(text);
+    setCopiedIndex(index);
+    setTimeout(() => {
+      setCopiedIndex(null);
+    }, 2000);
+  };
   
   // Audio State
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
@@ -363,11 +376,30 @@ export default function PDFUpload({ user, chunk, onGoToGalpao }: { user: Firebas
                     </h3>
                     <div className="grid grid-cols-1 gap-3">
                       {result.keyPoints?.map((point: string, i: number) => (
-                        <div key={i} className="flex items-start gap-3 p-4 bg-white dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
-                          <div className="w-6 h-6 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">
-                            {i + 1}
+                        <div key={i} className="flex flex-col gap-3 p-4 bg-white dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm relative group">
+                          <div className="flex items-start gap-3">
+                            <div className="w-6 h-6 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">
+                              {i + 1}
+                            </div>
+                            <p className="text-sm text-gray-700 dark:text-gray-300 font-medium leading-relaxed">{point}</p>
                           </div>
-                          <p className="text-sm text-gray-700 dark:text-gray-300 font-medium leading-relaxed">{point}</p>
+                          
+                          <div className="flex justify-end mt-1">
+                            <button 
+                              onClick={() => handleCopy(point, i)}
+                              className="p-1.5 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 bg-slate-50 dark:bg-slate-800/80 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg transition-all flex items-center gap-1.5 opacity-70 hover:opacity-100"
+                              title="Copiar texto"
+                            >
+                              {copiedIndex === i ? (
+                                <>
+                                  <Check className="w-3.5 h-3.5 text-emerald-500" />
+                                  <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">Copiado</span>
+                                </>
+                              ) : (
+                                <Copy className="w-3.5 h-3.5" />
+                              )}
+                            </button>
+                          </div>
                         </div>
                       ))}
                     </div>
