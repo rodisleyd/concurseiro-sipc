@@ -131,23 +131,49 @@ export default function StudyPlanner({ user }: { user: FirebaseUser }) {
         return;
       }
 
-      // Algoritmo Matemático de Rodízio (Weighted Round Robin)
-      let currentScores = new Array(validSubjects.length).fill(0);
-      const totalWeight = validSubjects.reduce((acc, curr) => acc + curr.weight, 0);
+      // Agrupamento de Matérias (Meta-Matérias)
+      // Ex: "Content Marketing 1" e "Content Marketing 2" viram o grupo "Content Marketing"
+      const groups: Record<string, { weight: number; items: string[]; currentScore: number }> = {};
+
+      validSubjects.forEach(s => {
+        // Remove números do final do nome para encontrar o "grupo" (ex: "EDH 1" -> "EDH")
+        const baseName = s.name.replace(/\s+\d+$/, '').trim();
+        if (!groups[baseName]) {
+          groups[baseName] = { weight: 0, items: [], currentScore: 0 };
+        }
+        // Acumula o peso total do grupo e coloca a submatéria na fila
+        groups[baseName].weight += s.weight;
+        groups[baseName].items.push(s.name);
+      });
+
+      const groupNames = Object.keys(groups);
+      const totalGroupWeight = groupNames.reduce((acc, name) => acc + groups[name].weight, 0);
       const sequence: string[] = [];
 
+      // Algoritmo Matemático de Rodízio sobre os GRUPOS (Weighted Round Robin)
       for (let i = 0; i < totalBlocks; i++) {
-        for (let j = 0; j < validSubjects.length; j++) {
-          currentScores[j] += validSubjects[j].weight;
+        // Adiciona os pesos aos scores atuais
+        for (const name of groupNames) {
+          groups[name].currentScore += groups[name].weight;
         }
-        let maxIndex = 0;
-        for (let j = 1; j < validSubjects.length; j++) {
-          if (currentScores[j] > currentScores[maxIndex]) {
-            maxIndex = j;
+
+        // Encontra o grupo com o maior score
+        let maxGroup = groupNames[0];
+        for (let j = 1; j < groupNames.length; j++) {
+          if (groups[groupNames[j]].currentScore > groups[maxGroup].currentScore) {
+            maxGroup = groupNames[j];
           }
         }
-        currentScores[maxIndex] -= totalWeight;
-        sequence.push(validSubjects[maxIndex].name);
+
+        // Subtrai o peso total do grupo vencedor para equilibrar
+        groups[maxGroup].currentScore -= totalGroupWeight;
+
+        // Tira o primeiro item da fila desse grupo e coloca de volta no final (Fila Circular)
+        const nextItem = groups[maxGroup].items.shift()!;
+        groups[maxGroup].items.push(nextItem);
+
+        // Adiciona a submatéria exata na sequência final
+        sequence.push(nextItem);
       }
 
       // Para não sobrecarregar a IA (ou estourar limite de tokens) pedimos no máximo 30 blocos detalhados
