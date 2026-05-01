@@ -13,20 +13,22 @@ if (!apiKey) {
 const ai = new GoogleGenAI({ apiKey });
 
 export const geminiService = {
-  async generateStudyPlan(subjects: { name: string; weight: number }[], totalHours: number) {
+  async generateStudyPlan(sequence: string[]) {
     const prompt = `Você é um mentor de estudos estratégico e especialista em metodologias de aprendizagem acelerada.
-    Gere uma trilha de estudos realista baseada em um ciclo de estudos.
-    Total do projeto: ${totalHours} horas.
-    Matérias e Pesos: ${JSON.stringify(subjects)}.
+    Eu já calculei a sequência matemática exata das matérias que o aluno deve estudar para garantir um rodízio perfeito.
+    
+    SEQUÊNCIA EXATA DE MATÉRIAS:
+    ${JSON.stringify(sequence)}
+    
+    Sua ÚNICA tarefa é definir um 'focusArea' (tópico de estudo sucinto e inspirador) para CADA bloco dessa sequência.
     
     REGRAS CRÍTICAS:
-    1. O campo "durationMinutes" DEVE SER EXATAMENTE 30 para TODOS os blocos gerados, sem exceção.
-    2. Intercale as matérias respeitando a proporção dos pesos (matérias com mais peso aparecem mais vezes).
-    3. O campo "subject" DEVE SER EXATAMENTE igual a um dos nomes fornecidos no array.
-    4. IMPORTANTE SOBRE REPETIÇÕES: Se a lista de matérias for pequena (menos de 6), gere de 15 a 20 blocos intercalando-as. MAS se a lista de matérias for grande (ex: 10 ou mais, ou se elas tiverem números indicando sequência como "Matéria 1", "Matéria 2"), GERE EXATAMENTE 1 BLOCO PARA CADA MATÉRIA sem repetir nenhuma! O usuário quer passar por todas elas de forma linear sem repetição.
-    5. A progressão do estudo deve ficar descrita no campo "focusArea" (não repita o mesmo focusArea).
+    1. Você DEVE retornar EXATAMENTE a mesma quantidade de itens do array que eu te enviei (${sequence.length} itens). Nenhum a mais, nenhum a menos.
+    2. O campo "subject" DEVE ser EXATAMENTE a mesma string fornecida na sequência para a respectiva posição.
+    3. O campo "durationMinutes" DEVE SER EXATAMENTE 30 para todos os itens.
+    4. Crie um 'focusArea' diferente e progressivo quando a mesma matéria aparecer mais de uma vez.
     
-    Retorne um array JSON de objetos com: subject, durationMinutes e focusArea (um tópico específico para estudar nesse bloco).`;
+    Retorne APENAS um array JSON válido onde cada objeto possui: subject, durationMinutes e focusArea.`;
 
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",

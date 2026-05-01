@@ -116,18 +116,72 @@ export default function StudyPlanner({ user }: { user: FirebaseUser }) {
   const generatePlan = async () => {
     setIsGenerating(true);
     try {
-      const generatedPlan = await geminiService.generateStudyPlan(subjects, totalHours);
+      const validSubjects = subjects.map(s => ({ name: s.name, weight: Number(s.weight) || 0 })).filter(s => s.weight > 0 && s.name.trim() !== '');
+      
+      if (validSubjects.length === 0) {
+        showToast('Adicione matérias válidas com pesos maiores que zero.', 'error');
+        setIsGenerating(false);
+        return;
+      }
+
+      const totalBlocks = (Number(totalHours) || 0) * 2;
+      if (totalBlocks <= 0) {
+        showToast('Informe um número válido de Horas Totais de Estudo.', 'error');
+        setIsGenerating(false);
+        return;
+      }
+
+      // Algoritmo Matemático de Rodízio (Weighted Round Robin)
+      let currentScores = new Array(validSubjects.length).fill(0);
+      const totalWeight = validSubjects.reduce((acc, curr) => acc + curr.weight, 0);
+      const sequence: string[] = [];
+
+      for (let i = 0; i < totalBlocks; i++) {
+        for (let j = 0; j < validSubjects.length; j++) {
+          currentScores[j] += validSubjects[j].weight;
+        }
+        let maxIndex = 0;
+        for (let j = 1; j < validSubjects.length; j++) {
+          if (currentScores[j] > currentScores[maxIndex]) {
+            maxIndex = j;
+          }
+        }
+        currentScores[maxIndex] -= totalWeight;
+        sequence.push(validSubjects[maxIndex].name);
+      }
+
+      // Para não sobrecarregar a IA (ou estourar limite de tokens) pedimos no máximo 30 blocos detalhados
+      const blocksToDetail = Math.min(30, totalBlocks);
+      const sequenceToDetail = sequence.slice(0, blocksToDetail);
+      
+      let detailedPlan = [];
+      try {
+        detailedPlan = await geminiService.generateStudyPlan(sequenceToDetail);
+      } catch (e) {
+        console.warn("Falha ao gerar detalhes via IA, usando fallback.", e);
+        detailedPlan = sequenceToDetail.map(subject => ({ subject, durationMinutes: 30, focusArea: `Foco em ${subject}` }));
+      }
+
+      // Monta o cronograma completo
+      const generatedPlan = sequence.map((subject, index) => {
+        if (index < detailedPlan.length && detailedPlan[index]?.focusArea) {
+          return { subject, durationMinutes: 30, focusArea: detailedPlan[index].focusArea };
+        }
+        return { subject, durationMinutes: 30, focusArea: `Avanço e aprofundamento em ${subject}` };
+      });
+
       setPlan(generatedPlan);
       await studyService.saveUser({
         uid: user.uid,
-        subjects: subjects.map(s => ({ ...s, weight: Number(s.weight) || 0 })),
+        subjects: validSubjects,
         totalStudyHours: Number(totalHours) || 0,
         dailyHoursGoal: Number(dailyGoal) || 0,
         plan: generatedPlan
       });
-      showToast('Cronograma gerado e salvo!', 'success');
+      showToast(`Cronograma de ${totalBlocks} blocos gerado com sucesso!`, 'success');
     } catch (error) {
       console.error('Failed to generate plan', error);
+      showToast('Erro ao gerar cronograma.', 'error');
     } finally {
       setIsGenerating(false);
     }
