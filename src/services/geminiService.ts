@@ -22,7 +22,9 @@ export const geminiService = {
     REGRAS CRÍTICAS:
     1. O campo "durationMinutes" DEVE SER EXATAMENTE 30 para TODOS os blocos gerados, sem exceção.
     2. Intercale as matérias respeitando a proporção dos pesos (matérias com mais peso aparecem mais vezes).
-    3. Gere de 15 a 20 blocos para começar a trilha.
+    3. O campo "subject" DEVE SER EXATAMENTE igual a um dos nomes fornecidos no array. NÃO adicione numerações (ex: "Matéria 1", "Matéria 2"). A progressão do estudo deve ficar descrita APENAS no campo "focusArea".
+    4. Não repita o mesmo focusArea.
+    5. Gere de 15 a 20 blocos para começar a trilha.
     
     Retorne um array JSON de objetos com: subject, durationMinutes e focusArea (um tópico específico para estudar nesse bloco).`;
 
