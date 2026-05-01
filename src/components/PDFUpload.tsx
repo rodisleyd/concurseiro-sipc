@@ -15,10 +15,13 @@ import {
   Loader2,
   Archive,
   Copy,
-  Check
+  Check,
+  Download,
+  Star
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useToast } from './Toast';
+import jsPDF from 'jspdf';
 
 export default function PDFUpload({ user, chunk, onGoToGalpao }: { user: FirebaseUser, chunk?: any, onGoToGalpao?: () => void }) {
   const { showToast } = useToast();
@@ -32,7 +35,24 @@ export default function PDFUpload({ user, chunk, onGoToGalpao }: { user: Firebas
 
   // Question State
   const [answers, setAnswers] = useState<Record<number, number>>({});
+  const [hasSavedScore, setHasSavedScore] = useState(false);
   
+  const isQuizCompleted = questions.length > 0 && Object.keys(answers).length === questions.length;
+  const score = isQuizCompleted ? questions.reduce((acc, q, i) => acc + (answers[i] === q.correctOption ? 1 : 0), 0) : 0;
+
+  // Auto-save quiz score
+  useEffect(() => {
+    if (isQuizCompleted && !hasSavedScore && chunk) {
+      studyService.saveQuizScore(user.uid, {
+        fileName: chunk.fileName || 'Material sem nome',
+        chunkTitle: chunk.title,
+        score,
+        total: questions.length
+      });
+      setHasSavedScore(true);
+    }
+  }, [isQuizCompleted, hasSavedScore, chunk, user.uid, score, questions.length]);
+
   // Copy State
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
 
@@ -57,11 +77,13 @@ export default function PDFUpload({ user, chunk, onGoToGalpao }: { user: Firebas
       setQuestions([]);
       setMindMap(null);
       setAnswers({});
+      setHasSavedScore(false);
       return;
     }
 
     setAnswers({});
     setSavedSuccess(false);
+    setHasSavedScore(false);
 
     // Se já foi processado no Firebase
     if (chunk.summaryData && chunk.questionsData && chunk.mindMapData) {
@@ -203,6 +225,63 @@ export default function PDFUpload({ user, chunk, onGoToGalpao }: { user: Firebas
         {node.children && node.children.map((child: any, i: number) => renderMindMapNode(child, depth + 1))}
       </div>
     );
+  };
+
+  const exportQuizToPDF = () => {
+    const doc = new jsPDF();
+    doc.setFontSize(16);
+    doc.text(`Simulado: ${chunk.title}`, 14, 20);
+    
+    doc.setFontSize(12);
+    let y = 30;
+    
+    questions.forEach((q, i) => {
+      if (y > 270) {
+        doc.addPage();
+        y = 20;
+      }
+      
+      const splitQuestion = doc.splitTextToSize(`${i + 1}. ${q.text}`, 180);
+      doc.text(splitQuestion, 14, y);
+      y += (splitQuestion.length * 6) + 2;
+      
+      q.options.forEach((opt: string, j: number) => {
+        if (y > 270) {
+          doc.addPage();
+          y = 20;
+        }
+        const isCorrect = q.correctOption === j;
+        const prefix = isCorrect ? '[X]' : '[ ]';
+        const splitOption = doc.splitTextToSize(`${prefix} ${opt}`, 170);
+        doc.text(splitOption, 20, y);
+        y += (splitOption.length * 6);
+      });
+      
+      y += 8;
+      
+      if (y > 270) {
+        doc.addPage();
+        y = 20;
+      }
+      doc.setFont("helvetica", "bold");
+      doc.text("Explicação:", 14, y);
+      doc.setFont("helvetica", "normal");
+      y += 6;
+      const splitExplanation = doc.splitTextToSize(q.explanation, 180);
+      doc.text(splitExplanation, 14, y);
+      y += (splitExplanation.length * 6) + 10;
+    });
+
+    if (isQuizCompleted) {
+      if (y > 270) {
+        doc.addPage();
+        y = 20;
+      }
+      doc.setFont("helvetica", "bold");
+      doc.text(`Nota Final: ${score} / ${questions.length}`, 14, y);
+    }
+    
+    doc.save(`Simulado_${chunk.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.pdf`);
   };
 
   if (!chunk) {
@@ -442,10 +521,19 @@ export default function PDFUpload({ user, chunk, onGoToGalpao }: { user: Firebas
                   exit={{ opacity: 0, x: -20 }}
                   className="p-10 space-y-8"
                 >
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
-                    <HelpCircle className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
-                    Simulado e Explicações
-                  </h3>
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                      <HelpCircle className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
+                      Simulado e Explicações
+                    </h3>
+                    <button 
+                      onClick={exportQuizToPDF}
+                      className="flex items-center gap-2 px-4 py-2 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-900/30 dark:hover:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 font-bold rounded-xl text-sm transition-all"
+                    >
+                      <Download className="w-4 h-4" />
+                      Salvar em PDF
+                    </button>
+                  </div>
                   <div className="space-y-12">
                     {questions.map((q, i) => {
                       const selectedAnswer = answers[i];
@@ -534,6 +622,39 @@ export default function PDFUpload({ user, chunk, onGoToGalpao }: { user: Firebas
                       );
                     })}
                   </div>
+
+                  {/* Resultado Final */}
+                  {isQuizCompleted && (
+                    <motion.div 
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="mt-12 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-3xl p-8 text-white text-center shadow-lg relative overflow-hidden"
+                    >
+                      <div className="absolute top-0 right-0 -mt-8 -mr-8 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl"></div>
+                      <div className="absolute bottom-0 left-0 -mb-8 -ml-8 w-24 h-24 bg-white opacity-10 rounded-full blur-xl"></div>
+                      
+                      <div className="relative z-10 flex flex-col items-center">
+                        <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mb-4">
+                          <Star className={`w-8 h-8 ${score > (questions.length / 2) ? 'text-amber-300' : 'text-indigo-200'}`} fill="currentColor" />
+                        </div>
+                        <h4 className="text-2xl font-black mb-2">Simulado Concluído!</h4>
+                        <p className="text-indigo-100 mb-6 max-w-md">
+                          Você respondeu todas as questões. Seu desempenho já foi salvo no seu histórico de estudos.
+                        </p>
+                        <div className="flex items-center gap-4 bg-black/20 px-6 py-4 rounded-2xl">
+                          <div className="text-center">
+                            <span className="block text-xs font-bold text-indigo-200 uppercase tracking-wider mb-1">Acertos</span>
+                            <span className="text-3xl font-black">{score}</span>
+                          </div>
+                          <div className="w-px h-10 bg-white/20"></div>
+                          <div className="text-center">
+                            <span className="block text-xs font-bold text-indigo-200 uppercase tracking-wider mb-1">Nota Final</span>
+                            <span className="text-3xl font-black">{score}/{questions.length}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
                 </motion.div>
               )}
             </AnimatePresence>

@@ -267,5 +267,29 @@ export const studyService = {
     } catch (error) {
       handleFirestoreError(error, OperationType.UPDATE, path);
     }
+  },
+
+  async saveQuizScore(userId: string, data: { fileName: string; chunkTitle: string; score: number; total: number }) {
+    const path = `users/${userId}/quiz_scores`;
+    try {
+      await addDoc(collection(db, 'users', userId, 'quiz_scores'), {
+        ...data,
+        userId,
+        completedAt: new Date().toISOString()
+      });
+    } catch (error) {
+      handleFirestoreError(error, OperationType.CREATE, path);
+    }
+  },
+
+  subscribeToQuizScores(userId: string, callback: (scores: any[]) => void) {
+    const path = `users/${userId}/quiz_scores`;
+    const q = query(collection(db, 'users', userId, 'quiz_scores'));
+    return onSnapshot(q, (snapshot) => {
+      const scores = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      callback(scores);
+    }, (error) => {
+      handleFirestoreError(error, OperationType.LIST, path);
+    });
   }
 };

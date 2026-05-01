@@ -27,6 +27,7 @@ export default function Dashboard({ user, onStartNext }: { user: FirebaseUser, o
   const { theme } = useTheme();
   const { blocks, activeBlockIndex, completedBlocks } = useStudySession();
   const [sessions, setSessions] = useState<any[]>([]);
+  const [quizScores, setQuizScores] = useState<any[]>([]);
   const [userData, setUserData] = useState<any>(null);
 
   useEffect(() => {
@@ -36,7 +37,7 @@ export default function Dashboard({ user, onStartNext }: { user: FirebaseUser, o
     };
     fetchUserData();
 
-    const unsubscribe = studyService.subscribeToSessions(user.uid, (data) => {
+    const unsubscribeSessions = studyService.subscribeToSessions(user.uid, (data) => {
       // Auto-corrige sessões antigas que foram gravadas com 90 minutos ou mais
       data.forEach(s => {
         if (s.durationMinutes > 30 || s.subject === 'Ciclo Completo') {
@@ -48,7 +49,15 @@ export default function Dashboard({ user, onStartNext }: { user: FirebaseUser, o
       });
       setSessions(data);
     });
-    return () => unsubscribe();
+
+    const unsubscribeQuiz = studyService.subscribeToQuizScores(user.uid, (data) => {
+      setQuizScores(data);
+    });
+
+    return () => {
+      unsubscribeSessions();
+      unsubscribeQuiz();
+    };
   }, [user.uid]);
 
   // As sessões agora são salvas bloco a bloco, então sessions contém tudo
@@ -80,6 +89,20 @@ export default function Dashboard({ user, onStartNext }: { user: FirebaseUser, o
   const performanceData = Object.values(subjectPerformance).map((s: any) => ({
     name: s.name,
     score: (s.total / s.count).toFixed(0)
+  }));
+
+  const quizPerformance = quizScores.reduce((acc: any, score) => {
+    if (!acc[score.fileName]) acc[score.fileName] = { name: score.fileName, totalScore: 0, count: 0, totalQuestions: 0 };
+    acc[score.fileName].totalScore += score.score;
+    acc[score.fileName].totalQuestions += score.total;
+    acc[score.fileName].count += 1;
+    return acc;
+  }, {});
+
+  const quizPerformanceData = Object.values(quizPerformance).map((q: any) => ({
+    name: q.name.length > 20 ? q.name.substring(0, 20) + '...' : q.name,
+    media: (q.totalScore / q.count).toFixed(1),
+    porcentagem: ((q.totalScore / q.totalQuestions) * 100).toFixed(0)
   }));
 
   const handleResetStats = async () => {
@@ -204,6 +227,34 @@ export default function Dashboard({ user, onStartNext }: { user: FirebaseUser, o
             </ResponsiveContainer>
           </div>
         </div>
+        
+        {/* Quiz Performance */}
+        {quizScores.length > 0 && (
+          <div className="bg-white dark:bg-slate-900 p-8 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800 lg:col-span-2 xl:col-span-1">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6">Desempenho nos Simulados (Média de Acertos)</h3>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={quizPerformanceData}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={theme === 'dark' ? '#1e293b' : '#f1f5f9'} />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: theme === 'dark' ? '#64748b' : '#94a3b8', fontSize: 12 }} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fill: theme === 'dark' ? '#64748b' : '#94a3b8', fontSize: 12 }} />
+                  <Tooltip 
+                    cursor={{ fill: theme === 'dark' ? '#1e293b' : '#f8fafc' }}
+                    contentStyle={{ 
+                      backgroundColor: theme === 'dark' ? '#0f172a' : '#fff',
+                      borderRadius: '12px', 
+                      border: 'none', 
+                      boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)',
+                      color: theme === 'dark' ? '#fff' : '#000'
+                    }}
+                    itemStyle={{ color: theme === 'dark' ? '#fff' : '#000' }}
+                  />
+                  <Bar dataKey="media" name="Acertos" fill="#8b5cf6" radius={[4, 4, 0, 0]} barSize={32} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Alerts/Notifications */}
