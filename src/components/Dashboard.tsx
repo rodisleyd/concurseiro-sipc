@@ -127,6 +127,12 @@ export default function Dashboard({ user, onStartNext }: { user: FirebaseUser, o
     }
   };
 
+  const handleDeleteSession = async (sessionId: string) => {
+    if (window.confirm("Deseja realmente apagar esta sessão do seu histórico? Isso atualizará seus gráficos automaticamente.")) {
+      await studyService.deleteSession(user.uid, sessionId);
+    }
+  };
+
   return (
     <div className="space-y-8">
       <header className="flex justify-between items-end">
@@ -253,6 +259,47 @@ export default function Dashboard({ user, onStartNext }: { user: FirebaseUser, o
                 </BarChart>
               </ResponsiveContainer>
             </div>
+          </div>
+        )}
+      </div>
+
+      {/* Session History */}
+      <div className="bg-white dark:bg-slate-900 p-8 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800">
+        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6">Histórico de Sessões</h3>
+        {sessions.length === 0 ? (
+          <p className="text-gray-500 dark:text-gray-400">Nenhuma sessão registrada ainda.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-slate-100 dark:border-slate-800 text-sm text-gray-500 dark:text-gray-400">
+                  <th className="pb-3 font-medium">Data</th>
+                  <th className="pb-3 font-medium">Matéria</th>
+                  <th className="pb-3 font-medium">Duração</th>
+                  <th className="pb-3 font-medium">Desempenho</th>
+                  <th className="pb-3 font-medium text-right">Ação</th>
+                </tr>
+              </thead>
+              <tbody className="text-sm">
+                {[...sessions].sort((a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime()).map(s => (
+                  <tr key={s.id} className="border-b border-slate-50 dark:border-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                    <td className="py-4 text-gray-900 dark:text-white whitespace-nowrap">{new Date(s.startTime).toLocaleDateString('pt-BR')} {new Date(s.startTime).toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'})}</td>
+                    <td className="py-4 font-bold text-gray-900 dark:text-white">{s.subject}</td>
+                    <td className="py-4 text-gray-600 dark:text-gray-400 whitespace-nowrap">{s.durationMinutes} min</td>
+                    <td className="py-4 text-gray-600 dark:text-gray-400">{s.performance || 100}%</td>
+                    <td className="py-4 text-right">
+                      <button 
+                        onClick={() => handleDeleteSession(s.id)}
+                        className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors inline-flex"
+                        title="Apagar sessão"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
       </div>
