@@ -39,6 +39,7 @@ export default function StudyPlanner({ user }: { user: FirebaseUser }) {
   const [galpaoMaterials, setGalpaoMaterials] = useState<any[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [expandedBlocks, setExpandedBlocks] = useState<number[]>([]);
+  const [selectedDay, setSelectedDay] = useState(1);
   const isDataLoaded = useRef(false);
 
   useEffect(() => {
@@ -404,8 +405,36 @@ export default function StudyPlanner({ user }: { user: FirebaseUser }) {
                   Gerar PDF
                 </button>
               </div>
+              <div className="p-4 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 sticky top-0 z-10">
+                <div className="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar scroll-smooth">
+                  {(() => {
+                    const blocksPerDay = (Number(dailyGoal) || 1) * 2;
+                    const totalDays = Math.ceil(plan.length / blocksPerDay);
+                    return Array.from({ length: totalDays }, (_, i) => i + 1).map(day => (
+                      <button
+                        key={day}
+                        onClick={() => setSelectedDay(day)}
+                        className={`px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap transition-all ${
+                          selectedDay === day
+                            ? 'bg-indigo-600 text-white shadow-md'
+                            : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+                        }`}
+                      >
+                        Dia {day}
+                      </button>
+                    ));
+                  })()}
+                </div>
+              </div>
+
               <div className="divide-y divide-slate-100 dark:divide-slate-800">
-                {plan.map((item, i) => (
+                {(() => {
+                  const blocksPerDay = (Number(dailyGoal) || 1) * 2;
+                  const dayBlocks = plan.slice((selectedDay - 1) * blocksPerDay, selectedDay * blocksPerDay);
+                  
+                  return dayBlocks.map((item, localIdx) => {
+                    const i = (selectedDay - 1) * blocksPerDay + localIdx;
+                    return (
                   <motion.div 
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -535,7 +564,9 @@ export default function StudyPlanner({ user }: { user: FirebaseUser }) {
                       </div>
                     </div>
                   </motion.div>
-                ))}
+                    );
+                  });
+                })()}
               </div>
             </div>
           ) : (
