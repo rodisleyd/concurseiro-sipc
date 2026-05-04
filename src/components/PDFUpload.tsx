@@ -43,12 +43,25 @@ export default function PDFUpload({ user, chunk, onGoToGalpao }: { user: Firebas
   // Auto-save quiz score
   useEffect(() => {
     if (isQuizCompleted && !hasSavedScore && chunk) {
-      studyService.saveQuizScore(user.uid, {
+      const quizResult = {
         fileName: chunk.fileName || 'Material sem nome',
         chunkTitle: chunk.title,
         score,
         total: questions.length
+      };
+
+      studyService.saveQuizScore(user.uid, quizResult);
+
+      // Também registra como uma sessão de estudo para o Dashboard
+      studyService.addSession(user.uid, {
+        subject: chunk.fileName || 'Material sem nome',
+        chunkTitle: chunk.title,
+        durationMinutes: 30,
+        performance: Math.round((score / questions.length) * 100),
+        completed: true,
+        quizSession: true // Flag opcional para identificar que veio de um quiz
       });
+
       setHasSavedScore(true);
     }
   }, [isQuizCompleted, hasSavedScore, chunk, user.uid, score, questions.length]);

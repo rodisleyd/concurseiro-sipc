@@ -213,10 +213,28 @@ export default function StudyPlanner({ user }: { user: FirebaseUser }) {
       setIsGenerating(false);
     }
   };
-  const toggleBlockCompletion = (index: number) => {
+  const toggleBlockCompletion = async (index: number) => {
     const newPlan = [...plan];
-    newPlan[index].completed = !newPlan[index].completed;
+    const isNowCompleted = !newPlan[index].completed;
+    newPlan[index].completed = isNowCompleted;
     setPlan(newPlan);
+
+    // Sincroniza com o histórico (Dashboard)
+    try {
+      if (isNowCompleted) {
+        await studyService.addSession(user.uid, {
+          subject: newPlan[index].subject,
+          durationMinutes: 30,
+          performance: 100,
+          completed: true,
+          blockId: index + 1 // ID do bloco para controle
+        });
+      } else {
+        await studyService.removeSessionByBlockId(user.uid, index + 1);
+      }
+    } catch (e) {
+      console.error("Erro ao sincronizar sessão do bloco:", e);
+    }
   };
 
   const downloadPDF = () => {
@@ -531,9 +549,26 @@ export default function StudyPlanner({ user }: { user: FirebaseUser }) {
                                       <div 
                                         key={chunk.id} 
                                         className="flex items-center justify-between group cursor-pointer py-0.5"
-                                        onClick={(e) => {
+                                        onClick={async (e) => {
                                           e.stopPropagation();
-                                          studyService.toggleChunkStudied(user.uid, chunk.id, !chunk.isStudied);
+                                          const isStudied = !chunk.isStudied;
+                                          try {
+                                            await studyService.toggleChunkStudied(user.uid, chunk.id, isStudied);
+                                            if (isStudied) {
+                                              await studyService.addSession(user.uid, {
+                                                subject: item.subject,
+                                                chunkTitle: chunk.title,
+                                                durationMinutes: 30,
+                                                performance: 100,
+                                                completed: true,
+                                                chunkId: chunk.id
+                                              });
+                                            } else {
+                                              await studyService.removeSessionByChunkId(user.uid, chunk.id);
+                                            }
+                                          } catch (err) {
+                                            console.error("Erro ao sincronizar tema do galpão:", err);
+                                          }
                                         }}
                                       >
                                         <div className="flex items-center gap-3 flex-1 min-w-0">

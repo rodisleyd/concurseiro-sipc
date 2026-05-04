@@ -127,6 +127,36 @@ export const studyService = {
     }
   },
 
+  async removeSessionByBlockId(userId: string, blockId: number) {
+    const path = `users/${userId}/sessions [Delete by blockId]`;
+    try {
+      const q = query(collection(db, 'users', userId, 'sessions'), where('blockId', '==', blockId));
+      const snapshot = await getDocs(q);
+      const batch = writeBatch(db);
+      snapshot.docs.forEach((doc) => {
+        batch.delete(doc.ref);
+      });
+      await batch.commit();
+    } catch (error) {
+      handleFirestoreError(error, OperationType.DELETE, path);
+    }
+  },
+
+  async removeSessionByChunkId(userId: string, chunkId: string) {
+    const path = `users/${userId}/sessions [Delete by chunkId]`;
+    try {
+      const q = query(collection(db, 'users', userId, 'sessions'), where('chunkId', '==', chunkId));
+      const snapshot = await getDocs(q);
+      const batch = writeBatch(db);
+      snapshot.docs.forEach((doc) => {
+        batch.delete(doc.ref);
+      });
+      await batch.commit();
+    } catch (error) {
+      handleFirestoreError(error, OperationType.DELETE, path);
+    }
+  },
+
   subscribeToSessions(userId: string, callback: (sessions: any[]) => void) {
     const path = `users/${userId}/sessions`;
     const q = query(collection(db, 'users', userId, 'sessions'));

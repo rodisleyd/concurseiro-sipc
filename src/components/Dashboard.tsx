@@ -92,10 +92,11 @@ export default function Dashboard({ user, onStartNext }: { user: FirebaseUser, o
   }));
 
   const quizPerformance = quizScores.reduce((acc: any, score) => {
-    if (!acc[score.fileName]) acc[score.fileName] = { name: score.fileName, totalScore: 0, count: 0, totalQuestions: 0 };
-    acc[score.fileName].totalScore += score.score;
-    acc[score.fileName].totalQuestions += score.total;
-    acc[score.fileName].count += 1;
+    const key = score.chunkTitle ? `${score.fileName} - ${score.chunkTitle}` : score.fileName;
+    if (!acc[key]) acc[key] = { name: key, totalScore: 0, count: 0, totalQuestions: 0 };
+    acc[key].totalScore += score.score;
+    acc[key].totalQuestions += score.total;
+    acc[key].count += 1;
     return acc;
   }, {});
 
