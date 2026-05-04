@@ -57,9 +57,12 @@ export const geminiService = {
   async explainTopic(topic: string, subject: string) {
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
-      contents: `Explique o tópico "${topic}" no contexto da matéria "${subject}" para um estudante que busca domínio total do assunto. Use exemplos práticos e analógicos condizentes com a área de estudo. RESPONDA OBRIGATORIAMENTE EM PORTUGUÊS DO BRASIL.`,
+      contents: `Explique o tópico "${topic}" dentro da disciplina "${subject}". Sua explicação deve ser baseada na aplicação real e prática deste conhecimento. 
+      IMPORTANTE: Utilize exemplos e analogias variadas do mundo real (negócios, cotidiano, tecnologia, indústria, etc.) que demonstrem o conceito em ação. 
+      PROIBIDO: Não utilize exemplos limitados ao universo de "estudos", "ser estudante" ou "aprender para uma prova". Foque em como um profissional ou alguém na prática usaria esse conceito no dia a dia.
+      RESPONDA OBRIGATORIAMENTE EM PORTUGUÊS DO BRASIL.`,
       config: {
-        systemInstruction: "Você é um tutor de estudos inteligente e didático. Explique os conceitos de forma muito clara, concisa e adaptada ao contexto da matéria informada."
+        systemInstruction: "Você é um especialista didático na disciplina informada. Sua missão é explicar conceitos através de aplicações práticas e analogias ricas do mundo real, fugindo do clichê acadêmico e do universo de 'estudante'. Seja criativo e use repertórios variados."
       }
     });
     return response.text;
@@ -222,9 +225,9 @@ export const geminiService = {
   async quickSearch(query: string) {
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
-      contents: `Explique brevemente o termo ou curiosidade: "${query}". Seja muito direto, didático e simples. Responda em no máximo 3 parágrafos curtos. RESPONDA EM PORTUGUÊS DO BRASIL.`,
+      contents: `Explique brevemente o termo ou curiosidade: "${query}". Seja muito direto, didático e traga uma aplicação ou exemplo prático do mundo real que não seja apenas sobre "estudar". Responda em no máximo 3 parágrafos curtos. RESPONDA EM PORTUGUÊS DO BRASIL.`,
       config: {
-        systemInstruction: "Você é um assistente de estudos inteligente. Sua missão é tirar dúvidas pontuais de forma extremamente clara, concisa e didática."
+        systemInstruction: "Você é um assistente inteligente e versátil. Sua missão é tirar dúvidas de forma clara e trazer exemplos do mundo real, evitando ficar preso ao contexto escolar ou acadêmico."
       }
     });
     return response.text;
