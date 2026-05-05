@@ -57,12 +57,17 @@ export const geminiService = {
   async explainTopic(topic: string, subject: string) {
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
-      contents: `Explique o tópico "${topic}" dentro da disciplina "${subject}". Sua explicação deve ser baseada na aplicação real e prática deste conhecimento. 
-      IMPORTANTE: Utilize exemplos e analogias variadas do mundo real (negócios, cotidiano, tecnologia, indústria, etc.) que demonstrem o conceito em ação. 
-      PROIBIDO: Não utilize exemplos limitados ao universo de "estudos", "ser estudante" ou "aprender para uma prova". Foque em como um profissional ou alguém na prática usaria esse conceito no dia a dia.
+      contents: `Você é um especialista sênior na disciplina "${subject}". 
+      Sua tarefa é explicar o tópico "${topic}" focando exclusivamente no conteúdo técnico e na sua aplicação prática no mundo real.
+      
+      IMPORTANTE: 
+      1. Use analogias ricas e exemplos de cenários profissionais (negócios, engenharia, direito, medicina, mercado financeiro, etc.).
+      2. PROIBIDO: Não dê dicas de estudo, não fale sobre "como aprender", "fazer revisões" ou "preparação para provas". Foque no CONTEÚD O e na PRÁTICA da disciplina.
+      3. Se o tópico for complexo, quebre-o em partes lógicas usando a ótica de quem trabalha na área.
+      
       RESPONDA OBRIGATORIAMENTE EM PORTUGUÊS DO BRASIL.`,
       config: {
-        systemInstruction: "Você é um especialista didático na disciplina informada. Sua missão é explicar conceitos através de aplicações práticas e analogias ricas do mundo real, fugindo do clichê acadêmico e do universo de 'estudante'. Seja criativo e use repertórios variados."
+        systemInstruction: `Você é um Professor Especialista em ${subject}. Sua comunicação é direta, técnica porém didática, e profundamente conectada com o mercado e a prática real. Você ignora o contexto de "estudante" e foca em transformar o usuário em um mestre no assunto tratado.`
       }
     });
     return response.text;

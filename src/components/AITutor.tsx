@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { User as FirebaseUser } from 'firebase/auth';
 import { geminiService } from '../services/geminiService';
+import { useStudySession } from '../contexts/StudySessionContext';
 import { 
   Send, 
   Bot, 
@@ -23,8 +24,11 @@ interface Message {
 }
 
 export default function AITutor({ user }: { user: FirebaseUser }) {
+  const { blocks, activeBlockIndex } = useStudySession();
+  const currentSubject = blocks[activeBlockIndex]?.subject || 'Conhecimentos Gerais';
+
   const [messages, setMessages] = useState<Message[]>([
-    { role: 'assistant', content: `Olá ${user.displayName?.split(' ')[0]}! Eu sou seu Professor IA. Como posso te ajudar nos estudos hoje?` }
+    { role: 'assistant', content: `Olá ${user.displayName?.split(' ')[0]}! Eu sou seu Professor Especialista em **${currentSubject}**. Como posso te ajudar a dominar este assunto hoje?` }
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -52,7 +56,7 @@ export default function AITutor({ user }: { user: FirebaseUser }) {
     setIsLoading(true);
 
     try {
-      const response = await geminiService.explainTopic(userMessage, 'Estudos e Aprendizado');
+      const response = await geminiService.explainTopic(userMessage, currentSubject);
       setMessages(prev => [...prev, { role: 'assistant', content: response || 'Desculpe, não consegui processar sua dúvida.' }]);
     } catch (error) {
       console.error(error);
@@ -209,8 +213,10 @@ export default function AITutor({ user }: { user: FirebaseUser }) {
           <div>
             <h2 className="font-bold text-gray-900 dark:text-white">Professor IA</h2>
             <div className="flex items-center gap-1.5">
-              <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
-              <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">Online e pronto para ajudar</span>
+              <Sparkles className="w-3 h-3 text-indigo-500" />
+              <span className="text-xs text-indigo-600 dark:text-indigo-400 font-bold uppercase tracking-wider">
+                Especialista em {currentSubject}
+              </span>
             </div>
           </div>
         </div>
